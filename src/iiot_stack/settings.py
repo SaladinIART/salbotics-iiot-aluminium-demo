@@ -8,16 +8,14 @@ from dataclasses import dataclass
 class CollectorSettings:
     site: str = os.getenv("SITE", "demo-site")
     line: str = os.getenv("LINE", "packaging-line-1")
-    asset: str = os.getenv("ASSET_ID", "edge-pump-01")
     modbus_host: str = os.getenv("MODBUS_HOST", "127.0.0.1")
     modbus_port: int = int(os.getenv("MODBUS_PORT", "1502"))
-    modbus_unit_id: int = int(os.getenv("MODBUS_UNIT_ID", "1"))
     mqtt_host: str = os.getenv("MQTT_HOST", "127.0.0.1")
     mqtt_port: int = int(os.getenv("MQTT_PORT", "1883"))
     mqtt_user: str = os.getenv("MQTT_USER", "iiot")
     mqtt_password: str = os.getenv("MQTT_PASSWORD", "demo_password")
     mqtt_client_id_prefix: str = os.getenv("MQTT_CLIENT_ID_PREFIX", "iiot-demo")
-    collect_interval_ms: int = int(os.getenv("COLLECT_INTERVAL_MS", "1000"))
+    default_poll_interval_ms: int = int(os.getenv("COLLECT_INTERVAL_MS", "1000"))
 
 
 @dataclass(frozen=True)

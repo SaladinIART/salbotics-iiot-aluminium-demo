@@ -15,7 +15,7 @@ It has six parts working together:
 5. A database that keeps the history.
 6. A Grafana dashboard that shows the data visually.
 
-If the test works, you will see the system start, store live readings, and display them in Grafana.
+If the test works, you will see the system start, store live readings, show machine state changes and alarms, and display them in Grafana.
 
 ## Before you begin
 
@@ -87,8 +87,11 @@ After login, open the dashboard named `IIoT Telemetry Overview`.
 
 What you should see:
 
-- a panel showing the latest signal values
-- a chart showing telemetry over time
+- summary cards for healthy assets, faulted assets, output, and recent alarms
+- an asset state board
+- an alarm and event timeline
+- a line telemetry trend chart
+- a production and downtime KPI table
 
 If the dashboard loads but looks empty, wait 15 to 30 seconds and refresh the page. The system may still be filling the database with its first readings.
 
@@ -110,7 +113,15 @@ What success looks like:
 - you see rows of data
 - the rows contain times, asset names, signals, values, quality, and sequence numbers
 
-If you get rows back, the pipeline is working all the way into storage.
+If you get rows back, the telemetry pipeline is working all the way into storage.
+
+You can also inspect the event history with:
+
+```powershell
+docker compose exec timescaledb psql -U iiot -d iiot -c "SELECT * FROM events ORDER BY ts DESC LIMIT 10;"
+```
+
+That should show machine state changes, alarm raises, alarm clears, and maintenance events.
 
 ## Step 5: Confirm that live values are changing
 
@@ -134,10 +145,11 @@ This tells you the simulator is still producing data and the stack is still carr
 
 Go back to Grafana and refresh the dashboard.
 
-You want to confirm two simple things:
+You want to confirm three simple things:
 
-1. The latest values panel is populated.
-2. The time-series chart has drawn lines or points.
+1. The asset state board is populated.
+2. The alarm and event timeline is populated.
+3. The time-series chart has drawn lines or points.
 
 If both are visible, the full test is successful from start to finish:
 
@@ -189,6 +201,7 @@ You can treat the full test as a pass if all of these are true:
 - Grafana opens at `http://localhost:3000`
 - the `IIoT Telemetry Overview` dashboard appears
 - the database query returns telemetry rows
+- the event query returns state or alarm records
 - the values continue updating over time
 
 If any one of those fails, the stack needs attention before you treat the demo as healthy.
@@ -228,8 +241,9 @@ If you are showing this stack to a lecturer, reviewer, or teammate, this is the 
 
 1. Start the stack with `docker compose up --build`
 2. Open Grafana in the browser
-3. Show the latest values and trend chart
-4. Run the database query in PowerShell
-5. Run it again a few seconds later to show the data changing
+3. Show the state board, alarm timeline, and trend chart
+4. Run the telemetry query in PowerShell
+5. Run the events query in PowerShell
+6. Run one of them again a few seconds later to show the data changing
 
 That gives a clear story that the stack works from end to end.

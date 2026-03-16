@@ -6,15 +6,17 @@ This project implements a simulator-first Industrial IIoT telemetry pipeline:
 
 It is designed as a portfolio-grade demo with reproducible infrastructure, versioned contracts, baseline security defaults, and a lightweight in-repo agentic AI scaffold.
 
+The current version models a small packaging line with four assets, operating-state transitions, fault events, and operator-facing dashboards.
+
 ## What is included
 
-- Deterministic Modbus TCP simulator serving demo telemetry.
-- Python collector with retry/backoff, sequence IDs, quality states, and structured logs.
-- MQTT contract and JSON payload schema for versioned telemetry.
-- Python ingestor that validates telemetry and batches writes to TimescaleDB.
+- Deterministic Modbus TCP simulator serving a multi-asset production line.
+- Python collector with retry/backoff, sequence IDs, machine-state semantics, event publishing, and structured logs.
+- MQTT contracts and JSON schemas for both telemetry and event streams.
+- Python ingestor that validates telemetry and events, then batches writes to TimescaleDB.
 - Docker Compose stack for Mosquitto, TimescaleDB, Grafana, simulator, collector, and ingestor.
-- Provisioned Grafana datasource and dashboard.
-- SQL migrations that create the telemetry hypertable and retention/compression policies.
+- Provisioned Grafana datasource and operator-style dashboards.
+- SQL migrations that create telemetry, events, metadata, and KPI views.
 - Unit tests plus an integration smoke test for the compose stack.
 - `agentic/` scaffold documenting planner-worker-verifier prompts and safe tool boundaries.
 

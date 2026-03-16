@@ -20,3 +20,9 @@ def load_register_map() -> dict[str, Any]:
 def load_payload_schema() -> dict[str, Any]:
     with (CONTRACTS_DIR / "telemetry_payload.schema.json").open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+@lru_cache(maxsize=1)
+def load_event_schema() -> dict[str, Any]:
+    with (CONTRACTS_DIR / "event_payload.schema.json").open("r", encoding="utf-8") as handle:
+        return json.load(handle)

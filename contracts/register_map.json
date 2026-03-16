@@ -1,50 +1,352 @@
 {
-  "version": 1,
-  "asset_id": "edge-pump-01",
+  "version": 2,
   "site": "demo-site",
   "line": "packaging-line-1",
-  "signals": [
+  "cell": "cell-a",
+  "assets": [
     {
-      "tag_id": "energy_kwh",
-      "asset_id": "edge-pump-01",
+      "asset_id": "feeder-01",
+      "name": "Raw Material Feeder",
+      "asset_type": "feeder",
+      "cell": "cell-a",
       "unit_id": 1,
-      "function_code": 3,
-      "address": 0,
-      "word_count": 2,
-      "datatype": "uint32",
-      "endianness": "big",
-      "scale": 0.01,
-      "offset": 0.0,
+      "base_address": 0,
       "poll_interval_ms": 1000,
-      "unit": "kWh"
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "101": "LOW_MATERIAL",
+        "102": "MOTOR_TRIP"
+      },
+      "signals": [
+        {
+          "tag_id": "throughput_kg_min",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "kg/min",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 75.0,
+            "warn_high": 118.0
+          }
+        },
+        {
+          "tag_id": "hopper_level_pct",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "%",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 20.0,
+            "warn_high": 95.0
+          }
+        },
+        {
+          "tag_id": "produced_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
     },
     {
-      "tag_id": "temperature_c",
-      "asset_id": "edge-pump-01",
+      "asset_id": "mixer-01",
+      "name": "Blend Mixer",
+      "asset_type": "mixer",
+      "cell": "cell-a",
       "unit_id": 1,
-      "function_code": 3,
-      "address": 2,
-      "word_count": 2,
-      "datatype": "float32",
-      "endianness": "big",
-      "scale": 1.0,
-      "offset": 0.0,
+      "base_address": 20,
       "poll_interval_ms": 1000,
-      "unit": "degC"
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "201": "HIGH_TEMPERATURE",
+        "202": "LOW_PRESSURE"
+      },
+      "signals": [
+        {
+          "tag_id": "temperature_c",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "degC",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 55.0,
+            "warn_high": 83.0
+          }
+        },
+        {
+          "tag_id": "pressure_bar",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "bar",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 3.0,
+            "warn_high": 6.8
+          }
+        },
+        {
+          "tag_id": "batch_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
     },
     {
-      "tag_id": "pressure_bar",
-      "asset_id": "edge-pump-01",
+      "asset_id": "conveyor-01",
+      "name": "Transfer Conveyor",
+      "asset_type": "conveyor",
+      "cell": "cell-b",
       "unit_id": 1,
-      "function_code": 3,
-      "address": 4,
-      "word_count": 2,
-      "datatype": "float32",
-      "endianness": "big",
-      "scale": 1.0,
-      "offset": 0.0,
+      "base_address": 40,
       "poll_interval_ms": 1000,
-      "unit": "bar"
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "301": "JAM_DETECTED",
+        "302": "SPEED_VARIANCE"
+      },
+      "signals": [
+        {
+          "tag_id": "speed_m_min",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "m/min",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 20.0,
+            "warn_high": 45.0
+          }
+        },
+        {
+          "tag_id": "vibration_mm_s",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "mm/s",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 0.0,
+            "warn_high": 7.5
+          }
+        },
+        {
+          "tag_id": "items_transferred",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
+    },
+    {
+      "asset_id": "packer-01",
+      "name": "Final Packer",
+      "asset_type": "packer",
+      "cell": "cell-b",
+      "unit_id": 1,
+      "base_address": 60,
+      "poll_interval_ms": 1000,
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "401": "FILM_BREAK",
+        "402": "SEAL_TEMP_LOW"
+      },
+      "signals": [
+        {
+          "tag_id": "seal_temperature_c",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "degC",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 165.0,
+            "warn_high": 196.0
+          }
+        },
+        {
+          "tag_id": "line_rate_units_min",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "units/min",
+          "signal_class": "analog",
+          "limits": {
+            "warn_low": 45.0,
+            "warn_high": 78.0
+          }
+        },
+        {
+          "tag_id": "packed_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
     }
   ]
 }

@@ -1,23 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "TelemetryPayload",
+  "title": "EventPayload",
   "type": "object",
   "required": [
     "v",
     "ts",
     "source_ts",
     "asset",
-    "signal",
-    "value",
-    "quality",
-    "seq",
+    "event_type",
     "state",
-    "fault_code"
+    "fault_code",
+    "severity",
+    "message",
+    "seq"
   ],
   "properties": {
     "v": {
       "type": "integer",
-      "const": 2
+      "const": 1
     },
     "ts": {
       "type": "integer",
@@ -31,20 +31,9 @@
       "type": "string",
       "minLength": 1
     },
-    "signal": {
+    "event_type": {
       "type": "string",
-      "minLength": 1
-    },
-    "value": {
-      "type": "number"
-    },
-    "quality": {
-      "type": "string",
-      "enum": ["good", "bad", "stale"]
-    },
-    "seq": {
-      "type": "integer",
-      "minimum": 0
+      "enum": ["state_changed", "alarm_raised", "alarm_cleared", "maintenance_started", "maintenance_ended", "status"]
     },
     "state": {
       "type": "string",
@@ -54,19 +43,20 @@
       "type": "integer",
       "minimum": 0
     },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "critical"]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0
+    },
     "reason_code": {
       "type": "string"
-    },
-    "unit": {
-      "type": "string"
-    },
-    "limits": {
-      "type": "object",
-      "properties": {
-        "warn_low": {"type": "number"},
-        "warn_high": {"type": "number"}
-      },
-      "additionalProperties": false
     }
   },
   "additionalProperties": false

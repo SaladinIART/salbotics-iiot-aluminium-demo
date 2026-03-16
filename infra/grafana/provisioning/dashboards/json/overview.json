@@ -4,6 +4,7 @@
   },
   "editable": true,
   "graphTooltip": 0,
+  "links": [],
   "panels": [
     {
       "datasource": {
@@ -12,13 +13,13 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "none"
+          "unit": "short"
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 7,
+        "w": 6,
         "x": 0,
         "y": 0
       },
@@ -35,11 +36,11 @@
       "targets": [
         {
           "format": "table",
-          "rawSql": "SELECT signal AS metric, value FROM telemetry_latest WHERE asset = 'edge-pump-01' ORDER BY signal;",
+          "rawSql": "SELECT COUNT(*) AS healthy_assets FROM asset_status WHERE state = 'RUNNING' AND quality = 'good';",
           "refId": "A"
         }
       ],
-      "title": "Latest Asset Signals",
+      "title": "Healthy Assets",
       "type": "stat"
     },
     {
@@ -54,26 +55,224 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 8
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 0
       },
       "id": 2,
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
       "targets": [
         {
-          "format": "time_series",
-          "rawSql": "SELECT ts AS time, value, signal AS metric FROM telemetry WHERE asset = 'edge-pump-01' ORDER BY ts;",
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS faulted_assets FROM asset_status WHERE state = 'FAULTED';",
           "refId": "A"
         }
       ],
-      "title": "Telemetry Trend",
+      "title": "Faulted Assets",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COALESCE(SUM(total_output), 0) AS line_output FROM production_kpis;",
+          "refId": "A"
+        }
+      ],
+      "title": "Line Output",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT COUNT(*) AS recent_alarm_raises FROM events WHERE event_type = 'alarm_raised' AND ts > now() - interval '15 minutes';",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Alarm Raises",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT m.display_name AS asset, s.state, s.quality, s.fault_code, COALESCE(s.reason_code, 'NONE') AS reason, s.ts FROM asset_status s JOIN asset_metadata m ON m.asset = s.asset ORDER BY m.display_name;",
+          "refId": "A"
+        }
+      ],
+      "title": "Asset State Board",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT ts, asset, event_type, severity, message FROM events ORDER BY ts DESC LIMIT 12;",
+          "refId": "A"
+        }
+      ],
+      "title": "Alarm and Event Timeline",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 7,
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, value, asset || ' - ' || signal AS metric FROM telemetry WHERE signal IN ('temperature_c', 'pressure_bar', 'seal_temperature_c', 'line_rate_units_min', 'throughput_kg_min', 'speed_m_min') ORDER BY ts;",
+          "refId": "A"
+        }
+      ],
+      "title": "Line Telemetry Trend",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT m.display_name AS asset, k.total_output, k.bad_quality_points, k.last_fault_ts FROM production_kpis k JOIN asset_metadata m ON m.asset = k.asset ORDER BY m.display_name;",
+          "refId": "A"
+        }
+      ],
+      "title": "Production and Downtime KPIs",
+      "type": "table"
     }
   ],
   "schemaVersion": 40,
   "style": "dark",
-  "tags": ["iiot", "telemetry"],
+  "tags": ["iiot", "telemetry", "operations"],
   "templating": {
     "list": []
   },
@@ -83,5 +282,5 @@
   },
   "title": "IIoT Telemetry Overview",
   "uid": "iiot-overview",
-  "version": 1
+  "version": 2
 }
