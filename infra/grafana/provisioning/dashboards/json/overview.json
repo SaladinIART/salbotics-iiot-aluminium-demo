@@ -1,0 +1,87 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [
+        {
+          "format": "table",
+          "rawSql": "SELECT signal AS metric, value FROM telemetry_latest WHERE asset = 'edge-pump-01' ORDER BY signal;",
+          "refId": "A"
+        }
+      ],
+      "title": "Latest Asset Signals",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "grafana"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "targets": [
+        {
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, value, signal AS metric FROM telemetry WHERE asset = 'edge-pump-01' ORDER BY ts;",
+          "refId": "A"
+        }
+      ],
+      "title": "Telemetry Trend",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 40,
+  "style": "dark",
+  "tags": ["iiot", "telemetry"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "title": "IIoT Telemetry Overview",
+  "uid": "iiot-overview",
+  "version": 1
+}

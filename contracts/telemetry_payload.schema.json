@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TelemetryPayload",
+  "type": "object",
+  "required": ["v", "ts", "asset", "signal", "value", "quality", "seq"],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 1
+    },
+    "ts": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "asset": {
+      "type": "string",
+      "minLength": 1
+    },
+    "signal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "value": {
+      "type": "number"
+    },
+    "quality": {
+      "type": "string",
+      "enum": ["good", "bad", "stale"]
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "unit": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

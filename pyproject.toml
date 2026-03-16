@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iiot-telemetry-stack"
+version = "0.1.0"
+description = "Portfolio-grade IIoT telemetry stack with Modbus, MQTT, TimescaleDB, and Grafana"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "jsonschema>=4.23.0",
+  "paho-mqtt>=2.1.0",
+  "psycopg[binary]>=3.2.6",
+  "pymodbus>=3.8.3",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.5",
+  "requests>=2.32.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+  "integration: tests that exercise the compose-based stack",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

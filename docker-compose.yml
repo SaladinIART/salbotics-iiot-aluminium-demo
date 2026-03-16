@@ -1,0 +1,71 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: iiot-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./infra/mosquitto/aclfile:/mosquitto/config/aclfile:ro
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: iiot-timescaledb
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-iiot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iiot_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-iiot}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/migrations:/docker-entrypoint-initdb.d:ro
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: iiot-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change_me_now}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - timescaledb
+
+  modbus_sim:
+    build:
+      context: .
+      dockerfile: sim/modbus_sim/Dockerfile
+    container_name: iiot-modbus-sim
+    ports:
+      - "1502:1502"
+
+  collector:
+    build:
+      context: .
+      dockerfile: services/collector/Dockerfile
+    container_name: iiot-collector
+    env_file:
+      - .env.example
+    environment:
+      MQTT_HOST: mosquitto
+      MODBUS_HOST: modbus_sim
+    depends_on:
+      - mosquitto
+      - modbus_sim
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: services/ingestor/Dockerfile
+    container_name: iiot-ingestor
+    env_file:
+      - .env.example
+    environment:
+      MQTT_HOST: mosquitto
+      PGHOST: timescaledb
+    depends_on:
+      - mosquitto
+      - timescaledb

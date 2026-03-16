@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "asset_id": "edge-pump-01",
+  "site": "demo-site",
+  "line": "packaging-line-1",
+  "signals": [
+    {
+      "tag_id": "energy_kwh",
+      "asset_id": "edge-pump-01",
+      "unit_id": 1,
+      "function_code": 3,
+      "address": 0,
+      "word_count": 2,
+      "datatype": "uint32",
+      "endianness": "big",
+      "scale": 0.01,
+      "offset": 0.0,
+      "poll_interval_ms": 1000,
+      "unit": "kWh"
+    },
+    {
+      "tag_id": "temperature_c",
+      "asset_id": "edge-pump-01",
+      "unit_id": 1,
+      "function_code": 3,
+      "address": 2,
+      "word_count": 2,
+      "datatype": "float32",
+      "endianness": "big",
+      "scale": 1.0,
+      "offset": 0.0,
+      "poll_interval_ms": 1000,
+      "unit": "degC"
+    },
+    {
+      "tag_id": "pressure_bar",
+      "asset_id": "edge-pump-01",
+      "unit_id": 1,
+      "function_code": 3,
+      "address": 4,
+      "word_count": 2,
+      "datatype": "float32",
+      "endianness": "big",
+      "scale": 1.0,
+      "offset": 0.0,
+      "poll_interval_ms": 1000,
+      "unit": "bar"
+    }
+  ]
+}

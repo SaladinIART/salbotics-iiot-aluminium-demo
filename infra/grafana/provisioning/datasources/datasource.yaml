@@ -1,0 +1,16 @@
+apiVersion: 1
+
+datasources:
+  - name: Timescale
+    type: postgres
+    access: proxy
+    url: timescaledb:5432
+    user: iiot
+    secureJsonData:
+      password: iiot_password_change_me
+    database: iiot
+    isDefault: true
+    jsonData:
+      sslmode: disable
+      postgresVersion: 1600
+      timescaledb: true
