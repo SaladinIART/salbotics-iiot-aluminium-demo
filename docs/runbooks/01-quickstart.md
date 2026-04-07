@@ -77,15 +77,15 @@ You should see rows like:
 
 | Interface | URL | Credentials |
 |-----------|-----|-------------|
-| NEXUS Dashboard | http://localhost:8000 | API Key in Admin page |
-| Swagger API Docs | http://localhost:8000/docs | — |
+| NEXUS Dashboard | http://localhost:8080 | API Key in Admin page |
+| Swagger API Docs | http://localhost:8080/docs | — |
 | Grafana | http://localhost:3000 | admin / change_me_now |
 
 ### First API call
 
 ```bash
 curl -s -H "X-API-Key: nexus-dev-key-change-me" \
-  http://localhost:8000/api/v1/assets | python3 -m json.tool
+  http://localhost:8080/api/v1/assets | python3 -m json.tool
 ```
 
 Expected: JSON array of 4 assets (feeder-01, mixer-01, conveyor-01, packer-01).

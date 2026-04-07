@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+# APP_ROOT lets Dockerfiles override the contracts location at runtime.
+# In dev (editable install): __file__ is 3 levels up from repo root via src/iiot_stack/.
+# When pip-installed: __file__ lands in site-packages — parents[2] is wrong,
+# so containers must set APP_ROOT=/app.
+ROOT = Path(os.environ.get("APP_ROOT", str(Path(__file__).resolve().parents[2])))
 CONTRACTS_DIR = ROOT / "contracts"
 
 

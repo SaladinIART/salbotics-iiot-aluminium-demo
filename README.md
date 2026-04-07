@@ -92,7 +92,7 @@ VISUALIZATION
 
 ## Screenshots
 
-> Run `docker compose up --build` and open `http://localhost:8000` to see these live.
+> Run `docker compose up --build` and open `http://localhost:8080` to see these live.
 
 | Floor Overview | Alert Inbox | KPI Dashboard |
 |---|---|---|
@@ -119,8 +119,8 @@ docker compose up --build
 
 # 3. Open dashboards
 #    Grafana operator dashboard  →  http://localhost:3000   (admin / change_me_now)
-#    NEXUS web app               →  http://localhost:8000   (available from Phase 4)
-#    API docs (Swagger)          →  http://localhost:8000/docs
+#    NEXUS web app               →  http://localhost:8080   (available from Phase 4)
+#    API docs (Swagger)          →  http://localhost:8080/docs
 ```
 
 Verify data is flowing:

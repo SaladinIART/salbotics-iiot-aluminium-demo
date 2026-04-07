@@ -9,4 +9,7 @@ COPY services/alerting ./services/alerting
 
 RUN pip install --no-cache-dir .
 
-CMD ["python", "services/alerting/router.py"]
+ENV APP_ROOT=/app
+ENV PYTHONPATH=/app
+
+CMD ["python", "-m", "services.alerting.router"]

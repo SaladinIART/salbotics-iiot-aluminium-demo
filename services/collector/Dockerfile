@@ -9,4 +9,6 @@ COPY services/collector ./services/collector
 
 RUN pip install --no-cache-dir .
 
+ENV APP_ROOT=/app
+
 CMD ["python", "services/collector/app.py"]

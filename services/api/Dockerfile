@@ -9,6 +9,9 @@ COPY services/api ./services/api
 
 RUN pip install --no-cache-dir .
 
+ENV APP_ROOT=/app
+ENV PYTHONPATH=/app
+
 EXPOSE 8000
 
-CMD ["python", "services/api/main.py"]
+CMD ["python", "-m", "services.api.main"]

@@ -9,4 +9,6 @@ COPY services/ingestor ./services/ingestor
 
 RUN pip install --no-cache-dir .
 
+ENV APP_ROOT=/app
+
 CMD ["python", "services/ingestor/app.py"]
