@@ -31,14 +31,14 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 2 — Alert Detector + Router
 
-- [ ] `services/alerting/rules.py` — `RuleLoader` (DB → alert rules, refresh every 60s)
-- [ ] `services/alerting/models/anomaly.py` — `AnomalyScorer` (IsolationForest wrapper)
-- [ ] `services/alerting/detector.py` — Layer 1: threshold check
-- [ ] `services/alerting/detector.py` — Layer 2: statistical baseline (z-score)
-- [ ] `services/alerting/detector.py` — Layer 3: ML anomaly (IsolationForest)
-- [ ] `services/alerting/router.py` — dedup + DB write + MQTT publish + webhook
-- [ ] `services/alerting/Dockerfile` + add service to `docker-compose.yml`
-- [ ] `tests/unit/test_detector.py` + `tests/unit/test_router.py`
+- [x] `services/alerting/rules.py` — `RuleLoader` (DB → alert rules, refresh every 60s)
+- [x] `services/alerting/models/anomaly.py` — `AnomalyScorer` (IsolationForest wrapper)
+- [x] `services/alerting/detector.py` — Layer 1: threshold check
+- [x] `services/alerting/detector.py` — Layer 2: statistical baseline (z-score)
+- [x] `services/alerting/detector.py` — Layer 3: ML anomaly (IsolationForest)
+- [x] `services/alerting/router.py` — dedup + DB write + MQTT publish + webhook
+- [x] `services/alerting/Dockerfile` + add service to `docker-compose.yml`
+- [x] `tests/unit/test_detector.py` + `tests/unit/test_router.py`
 
 **Verification:** inject spike → alert row in `alerts` table within 2 poll cycles
 
@@ -46,15 +46,15 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 3 — REST API Service
 
-- [ ] `services/api/dependencies.py` — DB pool, API key auth, `APISettings`
-- [ ] `services/api/schemas/` — 4 Pydantic model files (asset, telemetry, alert, kpi)
-- [ ] `services/api/routers/assets.py`
-- [ ] `services/api/routers/telemetry.py`
-- [ ] `services/api/routers/alerts.py` (GET + POST acknowledge)
-- [ ] `services/api/routers/kpis.py` + `sites.py`
-- [ ] `services/api/routers/stream.py` — SSE endpoints
-- [ ] `services/api/main.py` + `Dockerfile` + add service to `docker-compose.yml`
-- [ ] `tests/integration/test_api_endpoints.py`
+- [x] `services/api/dependencies.py` — DB pool, API key auth, `APISettings`
+- [x] `services/api/schemas/` — 4 Pydantic model files (asset, telemetry, alert, kpi)
+- [x] `services/api/routers/assets.py`
+- [x] `services/api/routers/telemetry.py`
+- [x] `services/api/routers/alerts.py` (GET + POST acknowledge)
+- [x] `services/api/routers/kpis.py` + `sites.py`
+- [x] `services/api/routers/stream.py` — SSE endpoints
+- [x] `services/api/main.py` + `Dockerfile` + add service to `docker-compose.yml`
+- [x] `tests/integration/test_api_endpoints.py`
 
 **Verification:** `GET /api/v1/assets` returns 4 assets · `GET /docs` shows Swagger UI · SSE stream opens
 

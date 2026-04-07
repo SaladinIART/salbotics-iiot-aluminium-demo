@@ -69,3 +69,35 @@ services:
     depends_on:
       - mosquitto
       - timescaledb
+
+  alerting:
+    build:
+      context: .
+      dockerfile: services/alerting/Dockerfile
+    container_name: iiot-alerting
+    env_file:
+      - .env.example
+    environment:
+      MQTT_HOST: mosquitto
+      PGHOST: timescaledb
+      # Override alert engine defaults here or in .env
+      # ALERT_DEDUP_WINDOW_SEC: "300"
+      # ALERT_WEBHOOK_URL: ""
+      # ML_MIN_SAMPLES: "50"
+    depends_on:
+      - mosquitto
+      - timescaledb
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    container_name: iiot-api
+    env_file:
+      - .env.example
+    environment:
+      PGHOST: timescaledb
+    ports:
+      - "8000:8000"
+    depends_on:
+      - timescaledb
