@@ -110,10 +110,10 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 8 — Kubernetes Helm Charts *(optional, high-impact)*
 
-- [ ] `helm/nexus/Chart.yaml` + `values.yaml`
-- [ ] `helm/nexus/templates/` — 9 template files
-- [ ] `docs/runbooks/05-scaling-to-tier3.md`
-- [ ] Test on local Minikube
+- [x] `helm/nexus/Chart.yaml` + `values.yaml`
+- [x] `helm/nexus/templates/` — `_helpers.tpl`, `secrets`, `emqx`, `modbus-sim`, `collector`, `ingestor`, `alerting`, `api`, `ingress`, `hpa`
+- [x] `docs/runbooks/05-scaling-to-tier3.md`
+- [ ] Test on local Minikube  *(run manually after pushing images)*
 
 **Verification:** `helm install nexus ./helm/nexus` — all pods Running
 
