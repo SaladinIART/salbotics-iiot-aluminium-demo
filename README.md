@@ -1,86 +1,196 @@
-# IIoT Telemetry Stack
+# NEXUS — Industrial Intelligence Platform
 
-This project implements a simulator-first Industrial IIoT telemetry pipeline:
+> From Factory Floor to Decision Desk
 
-`Modbus simulator -> Python collector -> MQTT broker -> Python ingestor -> TimescaleDB -> Grafana`
+![CI](https://github.com/SaladinIART/IIoT-Telemetry-Stack/actions/workflows/ci.yml/badge.svg)
 
-It is designed as a portfolio-grade demo with reproducible infrastructure, versioned contracts, baseline security defaults, and a lightweight in-repo agentic AI scaffold.
+A self-contained IIoT monitoring platform built to demonstrate the full Digital Transformation stack — from Modbus register reads to a live browser dashboard with real-time alerts. Designed for Penang manufacturing environments. Deployable with a single command.
 
-The current version models a small packaging line with four assets, operating-state transitions, fault events, and operator-facing dashboards.
+---
 
-## What is included
+## The Problem This Solves
 
-- Deterministic Modbus TCP simulator serving a multi-asset production line.
-- Python collector with retry/backoff, sequence IDs, machine-state semantics, event publishing, and structured logs.
-- MQTT contracts and JSON schemas for both telemetry and event streams.
-- Python ingestor that validates telemetry and events, then batches writes to TimescaleDB.
-- Docker Compose stack for Mosquitto, TimescaleDB, Grafana, simulator, collector, and ingestor.
-- Provisioned Grafana datasource and operator-style dashboards.
-- SQL migrations that create telemetry, events, metadata, and KPI views.
-- Unit tests plus an integration smoke test for the compose stack.
-- `agentic/` scaffold documenting planner-worker-verifier prompts and safe tool boundaries.
+| Problem | How NEXUS answers it |
+|---------|----------------------|
+| Factory data trapped in PLCs, managers using spreadsheets | REST API + Svelte frontend — any browser, no training needed |
+| DX projects fail because no one bridges PLC + code + DevOps | One engineer owns every layer: Modbus → MQTT → Python → TimescaleDB → FastAPI → Svelte → Docker → CI/CD |
+| Failures detected reactively, after machines stop | 3-layer alert engine: threshold rules → statistical baseline → ML anomaly (IsolationForest) |
+| AI tools used blindly without architectural ownership | Structured agentic scaffold + Architecture Decision Records document every choice |
 
-## Quick start
+---
 
-1. Create a virtual environment and install dependencies.
+## Architecture
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
+```
+OT LAYER
+  sim/modbus_sim        Modbus TCP :1502  (4 assets: feeder, mixer, conveyor, packer)
+
+COLLECTION
+  services/collector    Polls Modbus → publishes MQTT
+                        Topics: iiot/v1/telemetry/{site}/{line}/{asset}/{signal}
+                                iiot/v1/events/{site}/{line}/{asset}/{event_type}
+
+MESSAGING
+  infra/mosquitto       Eclipse Mosquitto, ACL auth  (Tier 1/2)
+                        → EMQX cluster               (Tier 3)
+
+PROCESSING  (parallel MQTT subscribers)
+  services/ingestor     Schema validate → batch write → TimescaleDB
+  services/alerting     3-layer detect → deduplicate → route → TimescaleDB + webhook
+
+STORAGE
+  TimescaleDB           telemetry · events · alerts · alert_rules · sites · asset_metadata
+                        Views: v_asset_current_state · v_recent_alerts · v_kpi_summary
+
+API
+  services/api          FastAPI + Uvicorn
+                        REST  GET  /api/v1/assets  /assets/{id}/telemetry  /alerts  /kpis  /sites
+                              POST /api/v1/alerts/{id}/acknowledge
+                        SSE   GET  /api/v1/stream/telemetry   (2s push)
+                              GET  /api/v1/stream/alerts      (new OPEN alerts)
+                        Auth  X-API-Key header
+                        Serves compiled frontend at /
+
+FRONTEND
+  frontend/             Svelte 5, compiled vanilla JS
+                        /           Floor overview — live asset grid
+                        /assets     Asset browser + signal history chart
+                        /alerts     Alert inbox + acknowledge
+                        /kpis       OEE + production KPIs
+                        /admin      Threshold editor + API key
+
+VISUALIZATION
+  Grafana :3000         Operator dashboards (direct TimescaleDB queries)
 ```
 
-2. Copy the environment defaults if you want a local `.env`.
+**Scale tiers — no code rewrites, only config changes:**
 
-```powershell
-Copy-Item .env.example .env
-```
+| | Tier 1 (now) | Tier 2 | Tier 3 |
+|--|---|---|---|
+| Devices | < 10 | 10–100 | 100+ |
+| Sites | 1 | 1–3 | Multi-site |
+| MQTT | Mosquitto | Mosquitto + bridge | EMQX cluster |
+| Deploy | `docker compose up` | `docker compose -f dc.yml -f dc.multi.yml up` | `helm install nexus ./helm/nexus` |
 
-3. Start the full stack.
+---
 
-```powershell
+## Tech Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Protocol | Modbus TCP | Most common in Penang manufacturing legacy equipment |
+| Messaging | MQTT / Mosquitto | Lightweight, proven IIoT standard, QoS 1 |
+| Backend | Python 3.13, FastAPI | Async, auto-generated OpenAPI docs, type-safe |
+| Database | TimescaleDB (PostgreSQL) | SQL + time-series, 3.5× faster than InfluxDB at high cardinality, native JOINs for shifts/assets |
+| Frontend | Svelte 5 + Vite | Compiles to vanilla JS, ~5× smaller bundle than React, SSE-native |
+| Alerting | scikit-learn IsolationForest | Zero cloud dependency, explainable, works fully offline |
+| Orchestration | Docker Compose → Helm | Single command at every scale tier |
+| CI/CD | GitHub Actions | Automated lint + test + build on every push |
+| Topic naming | ISA-95 hierarchy | Industry standard: `{site}/{line}/{asset}/{signal}` |
+
+---
+
+## Quick Start
+
+```bash
+# 1. Clone and configure
+git clone https://github.com/SaladinIART/IIoT-Telemetry-Stack.git nexus-iiot-platform
+cd nexus-iiot-platform
+cp .env.example .env        # review and adjust passwords
+
+# 2. Start the full stack
 docker compose up --build
+
+# 3. Open dashboards
+#    Grafana operator dashboard  →  http://localhost:3000   (admin / change_me_now)
+#    NEXUS web app               →  http://localhost:8000   (available from Phase 4)
+#    API docs (Swagger)          →  http://localhost:8000/docs
 ```
 
-4. Open Grafana at [http://localhost:3000](http://localhost:3000) with:
+Verify data is flowing:
 
-- User: `admin`
-- Password: `change_me_now`
-
-5. Verify data flow:
-
-```powershell
-docker compose exec timescaledb psql -U iiot -d iiot -c "SELECT * FROM telemetry ORDER BY ts DESC LIMIT 5;"
+```bash
+docker compose exec timescaledb psql -U iiot -d iiot \
+  -c "SELECT asset, signal, value, ts FROM telemetry ORDER BY ts DESC LIMIT 10;"
 ```
 
-## Testing
+---
 
-```powershell
-pytest tests/unit
-pytest tests/integration -m integration
+## Project Structure
+
+```
+nexus-iiot-platform/
+├── contracts/              JSON schemas + MQTT topic contract
+├── db/migrations/          TimescaleDB schema (hypertables, views, alerts)
+├── docs/
+│   ├── architecture.md     Full system diagram and data flow
+│   ├── adr/                Architecture Decision Records (why each tech was chosen)
+│   └── runbooks/           Step-by-step operational guides
+├── frontend/               Svelte 5 app (Phase 4)
+├── helm/nexus/             Kubernetes Helm charts (Phase 8)
+├── infra/
+│   ├── grafana/            Provisioned datasource + dashboards
+│   └── mosquitto/          Broker config + ACL
+├── services/
+│   ├── alerting/           3-layer alert engine (Phase 2)
+│   ├── api/                FastAPI REST + SSE service (Phase 3)
+│   ├── collector/          Modbus → MQTT
+│   └── ingestor/           MQTT → TimescaleDB
+├── sim/modbus_sim/         4-asset Modbus TCP simulator
+├── src/iiot_stack/         Shared Python library
+├── tests/                  Unit + integration tests
+├── docker-compose.yml      Tier 1 — single host
+├── docker-compose.multi.yml  Tier 2 — multi-site (Phase 6)
+├── PROGRESS.md             Build checklist
+└── pyproject.toml
 ```
 
-The integration test expects a reachable Docker daemon because it starts the compose stack and checks telemetry flow.
+---
 
-## GitHub setup
+## Development
 
-If `gh` is available later:
+```bash
+python -m venv .venv
+.venv\Scripts\Activate.ps1          # Windows
+source .venv/bin/activate            # Linux/macOS
+pip install -e ".[dev]"
 
-```powershell
-git init
-git branch -M main
-git add .
-git commit -m "Initial IIoT telemetry stack"
-gh repo create mqtt-simulation --private --source . --remote origin --push
+pytest tests/unit                    # fast unit tests
+pytest tests/integration -m integration  # requires Docker
 ```
 
-If `gh` is unavailable, create the private repository in GitHub and then run:
+---
 
-```powershell
-git init
-git branch -M main
-git add .
-git commit -m "Initial IIoT telemetry stack"
-git remote add origin https://github.com/<your-user>/mqtt-simulation.git
-git push -u origin main
-```
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | Full system diagram, data flow, component responsibilities |
+| [ADR-001 TimescaleDB](docs/adr/001-timescaledb-over-influxdb.md) | Why TimescaleDB over InfluxDB |
+| [ADR-002 FastAPI + Svelte](docs/adr/002-fastapi-svelte-frontend.md) | Why FastAPI + Svelte |
+| [ADR-003 Alert design](docs/adr/003-alert-three-layer.md) | 3-layer alert architecture |
+| [ADR-004 MQTT topics](docs/adr/004-isa95-topic-hierarchy.md) | ISA-95 topic naming convention |
+| [Quickstart runbook](docs/runbooks/01-quickstart.md) | Zero to running stack |
+| [Add a new asset](docs/runbooks/02-adding-new-asset.md) | Extend to new equipment |
+| [Tune alerts](docs/runbooks/03-alert-tuning.md) | Threshold and ML configuration |
+| [Scale to Tier 2](docs/runbooks/04-scaling-to-tier2.md) | Multi-site Docker Compose |
+| [Scale to Tier 3](docs/runbooks/05-scaling-to-tier3.md) | Kubernetes + EMQX |
+| [API Reference](docs/api-reference.md) | All REST + SSE endpoints |
+
+---
+
+## Build Progress
+
+See [PROGRESS.md](PROGRESS.md) for the current build checklist.
+
+---
+
+## Background
+
+Built during a career transition period (Sept 2025 – Apr 2026) as a practical extension of real IIoT work done at Alumac Industrience — a power monitoring system across 17 factory locations. This project does the same thing, properly: with Docker, CI/CD, structured contracts, and a real user interface.
+
+The goal is not just a working demo. It is a system that a plant engineer at Bosch, Siemens, or Schneider Electric could actually use.
+
+---
+
+*Built by [Muhamad Solehuddin](https://www.linkedin.com/in/solehuddin-muhamad-b67068132/) — Salbotics Solutions, Penang*

@@ -1,0 +1,136 @@
+# NEXUS — Build Progress
+
+Live checklist. Updated as each task is completed.
+
+---
+
+## Phase 0 — Foundation Stabilization
+
+- [x] Rename project to `nexus-iiot-platform`, update `pyproject.toml`
+- [x] Add Phase 2/3 dependencies: `fastapi`, `uvicorn`, `scikit-learn`, `numpy`, `httpx`, `psycopg-pool`, `ruff`
+- [x] Expand `.env.example` with API + alert engine variables (documented)
+- [x] Expand `README.md` — architecture diagram, tech stack table, quick start, docs links
+- [x] Write `docs/architecture.md` — full system diagram and data flow narrative
+- [x] Write `docs/adr/001` — TimescaleDB over InfluxDB
+- [x] Write `docs/adr/002` — FastAPI + Svelte frontend
+- [x] Write `docs/adr/003` — 3-layer alert architecture
+- [x] Write `docs/adr/004` — ISA-95 MQTT topic hierarchy
+- [x] Create stub migration files `002–004` (ready for Phase 1)
+- [x] Create `PROGRESS.md`
+
+---
+
+## Phase 1 — Database Extensions
+
+- [ ] `db/migrations/002_alerts.sql` — `alerts` table + `alert_rules` table
+- [ ] `db/migrations/003_site_config.sql` — `sites` table + `site_assets` view
+- [ ] `db/migrations/004_api_views.sql` — `v_asset_current_state`, `v_recent_alerts`, `v_kpi_summary`
+- [ ] `contracts/alert_payload.schema.json` — JSON schema for alert MQTT events
+
+---
+
+## Phase 2 — Alert Detector + Router
+
+- [ ] `services/alerting/rules.py` — `RuleLoader` (DB → alert rules, refresh every 60s)
+- [ ] `services/alerting/models/anomaly.py` — `AnomalyScorer` (IsolationForest wrapper)
+- [ ] `services/alerting/detector.py` — Layer 1: threshold check
+- [ ] `services/alerting/detector.py` — Layer 2: statistical baseline (z-score)
+- [ ] `services/alerting/detector.py` — Layer 3: ML anomaly (IsolationForest)
+- [ ] `services/alerting/router.py` — dedup + DB write + MQTT publish + webhook
+- [ ] `services/alerting/Dockerfile` + add service to `docker-compose.yml`
+- [ ] `tests/unit/test_detector.py` + `tests/unit/test_router.py`
+
+**Verification:** inject spike → alert row in `alerts` table within 2 poll cycles
+
+---
+
+## Phase 3 — REST API Service
+
+- [ ] `services/api/dependencies.py` — DB pool, API key auth, `APISettings`
+- [ ] `services/api/schemas/` — 4 Pydantic model files (asset, telemetry, alert, kpi)
+- [ ] `services/api/routers/assets.py`
+- [ ] `services/api/routers/telemetry.py`
+- [ ] `services/api/routers/alerts.py` (GET + POST acknowledge)
+- [ ] `services/api/routers/kpis.py` + `sites.py`
+- [ ] `services/api/routers/stream.py` — SSE endpoints
+- [ ] `services/api/main.py` + `Dockerfile` + add service to `docker-compose.yml`
+- [ ] `tests/integration/test_api_endpoints.py`
+
+**Verification:** `GET /api/v1/assets` returns 4 assets · `GET /docs` shows Swagger UI · SSE stream opens
+
+---
+
+## Phase 4 — Frontend (Svelte 5)
+
+- [ ] `frontend/` project setup — `package.json`, `vite.config.ts`, `svelte.config.js`
+- [ ] `frontend/src/lib/` — `api.ts`, `sse.ts`, `stores.ts`, `types.ts`
+- [ ] Components — `AssetCard`, `SignalChart`, `AlertBadge`, `KpiGauge`, `StatusPill`, `SiteSelector`
+- [ ] `+layout.svelte` — sidebar nav + top bar
+- [ ] `/` floor overview page (live asset grid via SSE)
+- [ ] `/assets` and `/assets/[id]` pages
+- [ ] `/alerts` page (inbox + acknowledge)
+- [ ] `/kpis` and `/admin` pages
+
+**Verification:** `http://localhost:8000` loads floor overview · 4 asset cards update live · alert acknowledge works
+
+---
+
+## Phase 5 — CI/CD Pipeline
+
+- [ ] `.github/workflows/ci.yml` — ruff lint + pytest unit + Svelte build
+- [ ] `.github/workflows/integration.yml` — compose smoke test on PRs to main
+- [ ] `.github/workflows/release.yml` — build + push GHCR images on `v*` tags
+
+**Verification:** GitHub Actions shows green on all 3 workflows
+
+---
+
+## Phase 6 — Tier 2 Multi-Site
+
+- [ ] `docker-compose.multi.yml` — `collector_site_b` + `modbus_sim_b` + stubs
+- [ ] `infra/grafana/provisioning/dashboards/production_kpis.json` — multi-site variable
+- [ ] `docs/runbooks/04-scaling-to-tier2.md`
+
+**Verification:** `SELECT DISTINCT site FROM telemetry` returns 2 values
+
+---
+
+## Phase 7 — Documentation + Runbooks
+
+- [ ] `docs/runbooks/01-quickstart.md` — zero to running stack in 15 min
+- [ ] `docs/runbooks/02-adding-new-asset.md`
+- [ ] `docs/runbooks/03-alert-tuning.md`
+- [ ] `docs/api-reference.md` — all endpoints with examples
+- [ ] `docs/data-model.md` — all tables and views explained
+- [ ] `README.md` screenshots (Grafana + frontend floor overview + alert inbox)
+
+**Verification:** colleague follows quickstart with zero support in < 15 minutes
+
+---
+
+## Phase 8 — Kubernetes Helm Charts *(optional, high-impact)*
+
+- [ ] `helm/nexus/Chart.yaml` + `values.yaml`
+- [ ] `helm/nexus/templates/` — 9 template files
+- [ ] `docs/runbooks/05-scaling-to-tier3.md`
+- [ ] Test on local Minikube
+
+**Verification:** `helm install nexus ./helm/nexus` — all pods Running
+
+---
+
+## End-to-End Verification Checklist
+
+Run this after Phase 4 is complete to confirm the full system works:
+
+```bash
+git clone ... && cp .env.example .env && docker compose up --build
+```
+
+- [ ] `http://localhost:8000` — Svelte floor overview loads, 4 asset cards update live
+- [ ] `http://localhost:3000` — Grafana operator dashboard shows telemetry
+- [ ] Inject spike into simulator → alert appears in `/alerts` within 10s
+- [ ] Acknowledge alert → state changes to ACKED
+- [ ] `curl -H "X-API-Key: nexus-dev-key-change-me" http://localhost:8000/api/v1/assets` returns JSON
+- [ ] `pytest tests/` — all tests pass
+- [ ] Push to GitHub → CI workflow green
