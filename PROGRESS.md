@@ -87,9 +87,9 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 6 — Tier 2 Multi-Site
 
-- [ ] `docker-compose.multi.yml` — `collector_site_b` + `modbus_sim_b` + stubs
-- [ ] `infra/grafana/provisioning/dashboards/production_kpis.json` — multi-site variable
-- [ ] `docs/runbooks/04-scaling-to-tier2.md`
+- [x] `docker-compose.multi.yml` — `collector_site_b` + `modbus_sim_b` + EMQX + seed
+- [x] `infra/grafana/provisioning/dashboards/json/production_kpis.json` — multi-site variable panel
+- [x] `docs/runbooks/04-scaling-to-tier2.md`
 
 **Verification:** `SELECT DISTINCT site FROM telemetry` returns 2 values
 
