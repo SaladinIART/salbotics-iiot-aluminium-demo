@@ -77,9 +77,9 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 5 — CI/CD Pipeline
 
-- [ ] `.github/workflows/ci.yml` — ruff lint + pytest unit + Svelte build
-- [ ] `.github/workflows/integration.yml` — compose smoke test on PRs to main
-- [ ] `.github/workflows/release.yml` — build + push GHCR images on `v*` tags
+- [x] `.github/workflows/ci.yml` — ruff lint + pytest unit + Svelte build
+- [x] `.github/workflows/integration.yml` — compose smoke test on PRs to main
+- [x] `.github/workflows/release.yml` — build + push GHCR images on `v*` tags
 
 **Verification:** GitHub Actions shows green on all 3 workflows
 

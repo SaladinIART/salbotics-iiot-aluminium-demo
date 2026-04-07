@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/nexus-iiot
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service:
+          - name: collector
+            dockerfile: services/collector/Dockerfile
+          - name: ingestor
+            dockerfile: services/ingestor/Dockerfile
+          - name: alerting
+            dockerfile: services/alerting/Dockerfile
+          - name: api
+            dockerfile: services/api/Dockerfile
+          - name: modbus-sim
+            dockerfile: sim/modbus_sim/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build Svelte frontend so the API image includes it
+      - name: Set up Node.js 22
+        if: matrix.service.name == 'api'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        if: matrix.service.name == 'api'
+        working-directory: frontend
+        run: npm ci && npm run build
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service.name }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV=$(git tag --sort=-version:refname | sed -n '2p')
+          if [ -z "$PREV" ]; then
+            COMMITS=$(git log --oneline | head -20)
+          else
+            COMMITS=$(git log "${PREV}..HEAD" --oneline)
+          fi
+          echo "CHANGELOG<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$COMMITS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            ## Docker Images
+
+            All images are published to GHCR:
+
+            ```
+            ghcr.io/${{ github.repository_owner }}/nexus-iiot-collector:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/nexus-iiot-ingestor:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/nexus-iiot-alerting:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/nexus-iiot-api:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/nexus-iiot-modbus-sim:${{ github.ref_name }}
+            ```
+
+            ## Changes
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+          generate_release_notes: true
