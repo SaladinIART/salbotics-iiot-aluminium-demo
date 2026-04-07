@@ -62,14 +62,14 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 4 — Frontend (Svelte 5)
 
-- [ ] `frontend/` project setup — `package.json`, `vite.config.ts`, `svelte.config.js`
-- [ ] `frontend/src/lib/` — `api.ts`, `sse.ts`, `stores.ts`, `types.ts`
-- [ ] Components — `AssetCard`, `SignalChart`, `AlertBadge`, `KpiGauge`, `StatusPill`, `SiteSelector`
-- [ ] `+layout.svelte` — sidebar nav + top bar
-- [ ] `/` floor overview page (live asset grid via SSE)
-- [ ] `/assets` and `/assets/[id]` pages
-- [ ] `/alerts` page (inbox + acknowledge)
-- [ ] `/kpis` and `/admin` pages
+- [x] `frontend/` project setup — `package.json`, `vite.config.ts`, `svelte.config.js`
+- [x] `frontend/src/lib/` — `api.ts`, `sse.ts`, `stores.ts`, `types.ts`
+- [x] Components — `AssetCard`, `SignalChart`, `AlertBadge`, `KpiGauge`, `StatusPill`, `SiteSelector`
+- [x] `+layout.svelte` — sidebar nav + top bar
+- [x] `/` floor overview page (live asset grid via SSE)
+- [x] `/assets` and `/assets/[id]` pages
+- [x] `/alerts` page (inbox + acknowledge)
+- [x] `/kpis` and `/admin` pages
 
 **Verification:** `http://localhost:8000` loads floor overview · 4 asset cards update live · alert acknowledge works
 
