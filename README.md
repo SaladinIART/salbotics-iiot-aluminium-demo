@@ -204,9 +204,7 @@ See [PROGRESS.md](PROGRESS.md) for the current build checklist.
 
 ## Background
 
-Built during a career transition period (Sept 2025 – Apr 2026) as a practical extension of real IIoT work done at Alumac Industrience — a power monitoring system across 17 factory locations. This project does the same thing, properly: with Docker, CI/CD, structured contracts, and a real user interface.
-
-The goal is not just a working demo. It is a system that a plant engineer at Bosch, Siemens, or Schneider Electric could actually use.
+Built during a career transition period (Sept 2025 – Apr 2026) as a practical extension of real IIoT work done at Alumac Industries — a power monitoring system across 17 machines locations. This project does the same thing, properly: with Docker, CI/CD, structured contracts, and a real user interface.
 
 ---
 
