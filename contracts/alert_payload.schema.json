@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AlertPayload",
+  "description": "Published to iiot/v1/alerts/{site}/{line}/{asset}/{alert_id} when an alert is opened, acknowledged, or closed.",
+  "type": "object",
+  "required": [
+    "v",
+    "id",
+    "ts",
+    "site",
+    "line_name",
+    "asset",
+    "signal",
+    "alert_type",
+    "severity",
+    "value",
+    "state",
+    "message"
+  ],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema version. Increment on breaking changes."
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "UUID of the alert row in the alerts table."
+    },
+    "ts": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix timestamp (milliseconds) when this alert event was emitted."
+    },
+    "site": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Site identifier matching the ISA-95 topic hierarchy."
+    },
+    "line_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Production line identifier."
+    },
+    "asset": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Asset identifier matching asset_metadata.asset."
+    },
+    "signal": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The sensor signal that triggered the alert."
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": ["threshold", "statistical", "ml"],
+      "description": "Which detection layer fired: threshold rule, statistical z-score, or ML anomaly."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warning", "critical"],
+      "description": "Alert severity. Matches the severity enum used in event_payload.schema.json."
+    },
+    "value": {
+      "type": "number",
+      "description": "The raw sensor value that triggered the alert."
+    },
+    "threshold": {
+      "type": ["number", "null"],
+      "description": "The threshold that was crossed. Null for statistical and ml alert types."
+    },
+    "state": {
+      "type": "string",
+      "enum": ["OPEN", "ACKED", "CLOSED"],
+      "description": "Current state of the alert at the time this event was published."
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable description of the alert condition."
+    },
+    "opened_at": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unix timestamp (milliseconds) when the alert was first opened. Present on all events."
+    },
+    "acked_at": {
+      "type": ["integer", "null"],
+      "description": "Unix timestamp (milliseconds) when the alert was acknowledged. Null if not yet acknowledged."
+    },
+    "closed_at": {
+      "type": ["integer", "null"],
+      "description": "Unix timestamp (milliseconds) when the alert was closed. Null if still open."
+    },
+    "rule_id": {
+      "type": ["string", "null"],
+      "format": "uuid",
+      "description": "UUID of the alert_rules row that triggered this alert. Null for statistical and ml types."
+    }
+  },
+  "additionalProperties": false
+}

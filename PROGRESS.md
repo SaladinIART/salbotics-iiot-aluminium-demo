@@ -22,10 +22,10 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 1 — Database Extensions
 
-- [ ] `db/migrations/002_alerts.sql` — `alerts` table + `alert_rules` table
-- [ ] `db/migrations/003_site_config.sql` — `sites` table + `site_assets` view
-- [ ] `db/migrations/004_api_views.sql` — `v_asset_current_state`, `v_recent_alerts`, `v_kpi_summary`
-- [ ] `contracts/alert_payload.schema.json` — JSON schema for alert MQTT events
+- [x] `db/migrations/002_alerts.sql` — `alerts` table + `alert_rules` table (with seeded default rules)
+- [x] `db/migrations/003_site_config.sql` — `sites` table + `site_assets` view
+- [x] `db/migrations/004_api_views.sql` — `v_asset_current_state`, `v_recent_alerts`, `v_kpi_summary`
+- [x] `contracts/alert_payload.schema.json` — JSON schema for alert MQTT events
 
 ---
 
