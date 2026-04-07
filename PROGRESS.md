@@ -97,12 +97,12 @@ Live checklist. Updated as each task is completed.
 
 ## Phase 7 — Documentation + Runbooks
 
-- [ ] `docs/runbooks/01-quickstart.md` — zero to running stack in 15 min
-- [ ] `docs/runbooks/02-adding-new-asset.md`
-- [ ] `docs/runbooks/03-alert-tuning.md`
-- [ ] `docs/api-reference.md` — all endpoints with examples
-- [ ] `docs/data-model.md` — all tables and views explained
-- [ ] `README.md` screenshots (Grafana + frontend floor overview + alert inbox)
+- [x] `docs/runbooks/01-quickstart.md` — zero to running stack in 15 min
+- [x] `docs/runbooks/02-adding-new-asset.md`
+- [x] `docs/runbooks/03-alert-tuning.md`
+- [x] `docs/api-reference.md` — all endpoints with examples
+- [x] `docs/data-model.md` — all tables and views explained
+- [x] `README.md` — screenshots section + data-model link added
 
 **Verification:** colleague follows quickstart with zero support in < 15 minutes
 

@@ -90,6 +90,22 @@ VISUALIZATION
 
 ---
 
+## Screenshots
+
+> Run `docker compose up --build` and open `http://localhost:8000` to see these live.
+
+| Floor Overview | Alert Inbox | KPI Dashboard |
+|---|---|---|
+| ![Floor Overview](docs/screenshots/floor-overview.png) | ![Alerts](docs/screenshots/alerts.png) | ![KPIs](docs/screenshots/kpis.png) |
+
+| Grafana Operator View | Asset Detail |
+|---|---|
+| ![Grafana](docs/screenshots/grafana-overview.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
+
+*(Screenshots taken from a local demo run — `docker compose up --build`)*
+
+---
+
 ## Quick Start
 
 ```bash
@@ -176,6 +192,7 @@ pytest tests/integration -m integration  # requires Docker
 | [Scale to Tier 2](docs/runbooks/04-scaling-to-tier2.md) | Multi-site Docker Compose |
 | [Scale to Tier 3](docs/runbooks/05-scaling-to-tier3.md) | Kubernetes + EMQX |
 | [API Reference](docs/api-reference.md) | All REST + SSE endpoints |
+| [Data Model](docs/data-model.md) | All tables, views, indexes, and useful queries |
 
 ---
 
