@@ -43,7 +43,7 @@ _MTTR_MAP = {
 
 _RECOMMENDED_ACTIONS: dict[str, list[dict]] = {
     "NORMAL": [
-        {"urgency": "INFO", "owner": "MANAGEMENT", "action": "All systems nominal — no action required"},
+        {"urgency": "INFO", "owner": "MANAGEMENT", "action": "All systems nominal. No action required."},
     ],
     "QUALITY_HOLD": [
         {"urgency": "URGENT",    "owner": "MAINTENANCE",  "action": "Inspect reflow oven cooling loop — schedule PM within 4 hours"},
@@ -100,11 +100,13 @@ ORDER BY due_at
 """
 
 _PACKED_TODAY_SQL = """
-SELECT COALESCE(MAX(value::bigint), 0) AS packed_today
+SELECT COALESCE(
+    MAX(value::bigint) - MIN(value::bigint), 0
+) AS packed_today
 FROM telemetry
 WHERE asset = 'packer-01'
   AND signal = 'packed_count'
-  AND ts >= CURRENT_DATE
+  AND ts >= date_trunc('day', NOW() AT TIME ZONE 'Asia/Kuala_Lumpur') AT TIME ZONE 'Asia/Kuala_Lumpur'
 """
 
 _SCHEDULE_SQL = """
