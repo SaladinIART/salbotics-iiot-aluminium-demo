@@ -11,6 +11,8 @@ from pymodbus.server import StartTcpServer
 
 from iiot_stack.industrial import load_assets
 from iiot_stack.logging_utils import configure_logging
+import scenario_state
+import scenario_api
 
 
 LOG = logging.getLogger("modbus_sim")
@@ -37,21 +39,27 @@ def build_context() -> ModbusServerContext:
 
 def serve() -> None:
     configure_logging()
+
+    # Start scenario HTTP API on port 5001 (background thread)
+    threading.Thread(target=scenario_api.run, daemon=True).start()
+    LOG.info("scenario API started on :5001")
+
     context = build_context()
     store = context[1]
     start = time.time()
     assets = load_assets()
 
+    # 90-second cycling scenario windows (used when no scenario lock is active)
     scenario_windows = {
-        "feeder-01": [(0, 8, 1, 0), (8, 34, 2, 0), (34, 43, 3, 101), (43, 55, 2, 0), (55, 66, 4, 0), (66, 90, 2, 0)],
-        "mixer-01": [(0, 10, 1, 0), (10, 45, 2, 0), (45, 52, 3, 201), (52, 70, 2, 0), (70, 90, 2, 0)],
+        "feeder-01":   [(0, 8, 1, 0), (8, 34, 2, 0), (34, 43, 3, 101), (43, 55, 2, 0), (55, 66, 4, 0), (66, 90, 2, 0)],
+        "mixer-01":    [(0, 10, 1, 0), (10, 45, 2, 0), (45, 52, 3, 201), (52, 70, 2, 0), (70, 90, 2, 0)],
         "conveyor-01": [(0, 7, 0, 0), (7, 40, 2, 0), (40, 49, 3, 301), (49, 65, 2, 0), (65, 90, 2, 0)],
-        "packer-01": [(0, 12, 1, 0), (12, 58, 2, 0), (58, 68, 3, 401), (68, 77, 4, 0), (77, 90, 2, 0)],
+        "packer-01":   [(0, 12, 1, 0), (12, 58, 2, 0), (58, 68, 3, 401), (68, 77, 4, 0), (77, 90, 2, 0)],
     }
 
     counters = {asset["asset_id"]: 0 for asset in assets}
 
-    def scenario_state(asset_id: str, elapsed: float) -> tuple[int, int]:
+    def cycling_state(asset_id: str, elapsed: float) -> tuple[int, int]:
         second = int(elapsed) % 90
         for start_second, end_second, state_code, fault_code in scenario_windows[asset_id]:
             if start_second <= second < end_second:
@@ -101,7 +109,14 @@ def serve() -> None:
             for asset in assets:
                 asset_id = asset["asset_id"]
                 base_address = asset["base_address"]
-                state_code, fault_code = scenario_state(asset_id, elapsed)
+
+                # Check for active scenario lock; fall back to 90-second cycling
+                override = scenario_state.get_override(asset_id)
+                if override is not None:
+                    state_code, fault_code = override
+                else:
+                    state_code, fault_code = cycling_state(asset_id, elapsed)
+
                 primary, secondary = analog_values(asset_id, elapsed, state_code, fault_code)
 
                 if state_code == 2:

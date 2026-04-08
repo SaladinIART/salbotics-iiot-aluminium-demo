@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from iiot_stack.logging_utils import configure_logging
 from iiot_stack.settings import APISettings
-from services.api.routers import alerts, assets, kpis, sites, stream, telemetry
+from services.api.routers import alerts, assets, dashboard, demo, kpis, sites, stream, telemetry
 
 LOG = logging.getLogger("api")
 
@@ -45,6 +45,8 @@ def create_app() -> FastAPI:
     app.include_router(kpis.router)
     app.include_router(sites.router)
     app.include_router(stream.router)
+    app.include_router(dashboard.router)
+    app.include_router(demo.router)
 
     @app.get("/health", tags=["health"])
     def health():

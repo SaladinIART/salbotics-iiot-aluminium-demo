@@ -1,4 +1,4 @@
-import type { Alert, Asset, KpiSummary, Site, TelemetryPoint } from './types';
+import type { Alert, Asset, DashboardResponse, KpiSummary, Site, TelemetryPoint } from './types';
 
 const BASE = '/api/v1';
 
@@ -48,5 +48,13 @@ export const api = {
 	},
 	sites: {
 		list: () => get<Site[]>('/sites'),
+	},
+	dashboard: {
+		get: () => get<DashboardResponse>('/dashboard'),
+	},
+	demo: {
+		setScenario: (name: string) =>
+			post<{ scenario: string; health: string; message: string }>(`/demo/scenario/${name}`, {}),
+		getScenario: () => get<{ scenario: string; health: string; message: string }>('/demo/scenario'),
 	},
 };

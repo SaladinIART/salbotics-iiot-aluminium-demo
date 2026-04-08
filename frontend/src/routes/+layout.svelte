@@ -7,11 +7,12 @@
 	import type { Alert, Asset, TelemetryPoint } from '$lib/types';
 
 	const nav = [
-		{ href: '/',        label: 'Floor Overview',  icon: '⬛' },
-		{ href: '/assets',  label: 'Assets',           icon: '🔧' },
-		{ href: '/alerts',  label: 'Alerts',           icon: '🔔' },
-		{ href: '/kpis',    label: 'KPIs',             icon: '📊' },
-		{ href: '/admin',   label: 'Admin',            icon: '⚙️'  },
+		{ href: '/dashboard', label: 'Executive View', icon: '🏭' },
+		{ href: '/',          label: 'Floor Overview', icon: '⬛' },
+		{ href: '/assets',    label: 'Assets',         icon: '🔧' },
+		{ href: '/alerts',    label: 'Alerts',         icon: '🔔' },
+		{ href: '/kpis',      label: 'KPIs',           icon: '📊' },
+		{ href: '/admin',     label: 'Admin',          icon: '⚙️'  },
 	];
 
 	let cleanupTelemetry: (() => void) | null = null;
@@ -75,7 +76,7 @@
 			{#each nav as item}
 				<a
 					class="nav-item"
-					class:active={$page.url.pathname === item.href}
+					class:active={item.href === '/' ? $page.url.pathname === '/' : $page.url.pathname.startsWith(item.href)}
 					href={item.href}
 				>
 					<span class="nav-icon">{item.icon}</span>

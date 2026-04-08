@@ -41,6 +41,7 @@ services:
     container_name: iiot-modbus-sim
     ports:
       - "1502:1502"
+      - "5001:5001"
 
   collector:
     build:
@@ -97,7 +98,9 @@ services:
       - .env.example
     environment:
       PGHOST: timescaledb
+      MODBUS_SIM_API: http://modbus_sim:5001
     ports:
       - "8080:8000"
     depends_on:
       - timescaledb
+      - modbus_sim
