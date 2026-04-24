@@ -1,16 +1,16 @@
 ---
 project_name: "salbotics iiot stack"
-owner: "Solehuddin"
+owner: "Maintainer"
 visibility_intent: "planned_public"
 security_mode: "public"
-secret_storage_location: "Use the central solehuddin-security-safe repo only"
+secret_storage_location: "Use central security-safe storage only"
 rotation_policy: "public_secret"
 notes: "Update this profile before repo visibility changes."
 ---
 
 # Security Profile
 
-This repo is protected by Solehuddin Security Safe.
+This repo is protected by Security Safe.
 
 ## Operating rules
 

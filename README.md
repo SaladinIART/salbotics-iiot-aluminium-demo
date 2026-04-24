@@ -213,4 +213,4 @@ Built during a career transition period (Sept 2025 – Apr 2026) as a practical 
 
 ---
 
-*Built by [Muhamad Solehuddin](https://www.linkedin.com/in/solehuddin-muhamad-b67068132/) — Salbotics Solutions, Penang*
+*Built by Salbotics Solutions, Penang*

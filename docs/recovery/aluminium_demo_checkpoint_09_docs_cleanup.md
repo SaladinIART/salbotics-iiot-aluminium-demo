@@ -13,7 +13,7 @@ This checkpoint was intentionally targeted rather than exhaustive: priority was 
 ### Top-level narrative
 
 - `README.md`
-- `agentic/prompts.md`
+- internal demo rehearsal notes
 
 ### Runbooks and references
 
@@ -42,9 +42,9 @@ Updated:
 
 The README now presents the repo as an aluminium decision demo first.
 
-### Prompt pack aligned to the actual runnable flow
+### Demo rehearsal notes aligned to the actual runnable flow
 
-`agentic/prompts.md` was updated so the Svelte flow points to:
+Internal rehearsal notes were updated so the Svelte flow points to:
 
 - `http://localhost:8080/`
 - then navigation to **Executive View**

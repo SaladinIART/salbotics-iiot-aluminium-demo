@@ -1,7 +1,7 @@
 # Checkpoint 3 - Contract and Simulator Alignment
 
 Date: 2026-04-24
-Repo: `C:\Users\salbot01\Salbotics\salbotics iiot stack`
+Repo: `salbotics-iiot-aluminium-demo`
 
 ## Objective
 

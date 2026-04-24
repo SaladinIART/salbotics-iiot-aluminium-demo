@@ -23,8 +23,7 @@ Make sure these are ready on your computer:
 
 - Docker Desktop is installed.
 - Docker Desktop is running.
-- You are inside the project folder:
-  [MQTT Simulation](/C:/Users/salbot01/OneDrive/Desktop/Edge%20compute%20miniproject/MQTT%20Simulation)
+- You are inside the project folder you cloned locally.
 
 Optional but helpful:
 
@@ -36,7 +35,7 @@ Optional but helpful:
 Open PowerShell and move into the project folder:
 
 ```powershell
-cd "C:\Users\salbot01\OneDrive\Desktop\Edge compute miniproject\MQTT Simulation"
+cd "C:\path\to\salbotics-iiot-aluminium-demo"
 ```
 
 You are in the right place if you can see files such as `docker-compose.yml`, `README.md`, and folders like `services`, `infra`, and `contracts`.

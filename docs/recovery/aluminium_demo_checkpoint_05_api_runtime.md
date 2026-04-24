@@ -8,12 +8,12 @@ Validate the live FastAPI responses against a running aluminium stack and confir
 
 ## Runtime fixes made during this checkpoint
 
-1. Restored simulator compatibility by pinning `pymodbus==3.8.3` in [pyproject.toml](</C:/Users/salbot01/Salbotics/salbotics iiot stack/pyproject.toml>).
-2. Updated [sim/modbus_sim/app.py](</C:/Users/salbot01/Salbotics/salbotics iiot stack/sim/modbus_sim/app.py>) to use the `ModbusSlaveContext` / `ModbusServerContext(slaves=...)` API expected by the pinned server version.
-3. Updated [services/collector/app.py](</C:/Users/salbot01/Salbotics/salbotics iiot stack/services/collector/app.py>) to call `read_holding_registers(..., slave=...)` instead of the unsupported `device_id=...` keyword.
+1. Restored simulator compatibility by pinning `pymodbus==3.8.3` in `pyproject.toml`.
+2. Updated `sim/modbus_sim/app.py` to use the `ModbusSlaveContext` / `ModbusServerContext(slaves=...)` API expected by the pinned server version.
+3. Updated `services/collector/app.py` to call `read_holding_registers(..., slave=...)` instead of the unsupported `device_id=...` keyword.
 4. Updated runtime defaults from packaging to aluminium in:
-   - [src/iiot_stack/settings.py](</C:/Users/salbot01/Salbotics/salbotics iiot stack/src/iiot_stack/settings.py>)
-   - [.env.example](</C:/Users/salbot01/Salbotics/salbotics iiot stack/.env.example>)
+   - `src/iiot_stack/settings.py`
+   - `.env.example`
 
 ## Verification performed
 

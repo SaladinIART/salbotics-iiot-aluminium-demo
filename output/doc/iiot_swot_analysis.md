@@ -1,6 +1,6 @@
 # SWOT Analysis of Solo Delivery of an Industrial IIoT Telemetry Stack with Agentic AI in 2026
 
-Source: [Solo Delivery of an Industrial IIoT Telemetry Stack with Agentic AI in 2026](C:\Users\salbot01\Downloads\Solo%20Delivery%20of%20an%20Industrial%20IIoT%20Telemetry%20Stack%20with%20Agentic%20AI%20in%202026.docx)
+Source: Internal working draft used to prepare this summary.
 
 ## Elaboration
 

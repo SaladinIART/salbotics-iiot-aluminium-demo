@@ -19,3 +19,5 @@ build/
 .ruff_cache/
 .docker/
 tmp/
+agentic/
+tmp_*.json

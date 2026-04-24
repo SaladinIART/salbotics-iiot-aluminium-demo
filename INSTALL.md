@@ -522,5 +522,5 @@ The whole demo takes about 5 minutes and requires no explanation beyond "this is
 
 ---
 
-*Built by [Muhamad Solehuddin](https://www.linkedin.com/in/solehuddin-muhamad-b67068132/) · Salbotics Solutions, Penang*
+*Built by Salbotics Solutions, Penang*
 *Questions or issues? Open a GitHub Issue at the project repository.*

@@ -1,7 +1,7 @@
 # Checkpoint 1 Baseline - Aluminium Demo Recovery
 
 Date: 2026-04-24
-Repo: `C:\Users\salbot01\Salbotics\salbotics iiot stack`
+Repo: `salbotics-iiot-aluminium-demo`
 Branch: `main`
 
 ## Scope Boundary
@@ -37,7 +37,7 @@ Classification legend:
 
 | File | Classification | Reason |
 |---|---|---|
-| `agentic/prompts.md` | implemented | aluminium rehearsal and recruiter/client Q&A are already added |
+| demo rehearsal notes | implemented | aluminium rehearsal content and recruiter/client Q&A are already added |
 | `contracts/register_map.json` | implemented | 7-station aluminium line model is present |
 | `db/migrations/001_init.sql` | suspected incomplete | foundational seed/schema change needs clean bootstrap proof |
 | `db/migrations/002_alerts.sql` | suspected incomplete | alert seed chain not yet validated against new signal catalog |
