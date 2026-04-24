@@ -66,6 +66,7 @@ declare module '$env/static/private' {
 	export const LOG_FORMAT: string;
 	export const MOZ_PLUGIN_PATH: string;
 	export const NODE: string;
+	export const NODE_ENV: string;
 	export const npm_command: string;
 	export const npm_config_cache: string;
 	export const npm_config_globalconfig: string;
@@ -235,6 +236,7 @@ declare module '$env/dynamic/private' {
 		LOG_FORMAT: string;
 		MOZ_PLUGIN_PATH: string;
 		NODE: string;
+		NODE_ENV: string;
 		npm_command: string;
 		npm_config_cache: string;
 		npm_config_globalconfig: string;

@@ -3,7 +3,6 @@
 
   export let assets: AssetDashboard[] = [];
 
-  // Ordered display sequence: left to right along the aluminium extrusion + finishing line
   const ORDER = [
     'furnace-01',
     'press-01',
@@ -15,35 +14,17 @@
   ];
 
   const ICONS: Record<string, string> = {
-    furnace:   '🏭',
-    press:     '🔩',
-    quench:    '💧',
-    cooling:   '🌬️',
+    furnace: '🏭',
+    press: '🔩',
+    quench: '💧',
+    cooling: '🌬',
     stretcher: '📏',
-    saw:       '🪚',
-    ageing:    '🌡️',
-  };
-
-  const STATE_BG: Record<string, string> = {
-    RUNNING:     'bg-green-800/60 border-green-500',
-    STARTUP:     'bg-blue-800/60 border-blue-400',
-    IDLE:        'bg-gray-700/60 border-gray-500',
-    FAULTED:     'bg-red-900/70 border-red-500',
-    MAINTENANCE: 'bg-amber-900/60 border-amber-500',
-    UNKNOWN:     'bg-gray-800/60 border-gray-600',
-  };
-
-  const STATE_DOT: Record<string, string> = {
-    RUNNING:     'bg-green-400 animate-pulse',
-    STARTUP:     'bg-blue-400 animate-pulse',
-    IDLE:        'bg-gray-500',
-    FAULTED:     'bg-red-500 animate-ping',
-    MAINTENANCE: 'bg-amber-400',
-    UNKNOWN:     'bg-gray-600',
+    saw: '🪚',
+    ageing: '🌡',
   };
 
   const FAULT_LABELS: Record<number, string> = {
-    0:   '',
+    0: '',
     111: 'OVER TEMP',
     112: 'UNDER TEMP',
     113: 'BURNER TRIP',
@@ -62,68 +43,206 @@
     712: 'AGE DWELL SHORT',
   };
 
-  $: ordered = ORDER.map(id => assets.find(a => a.asset === id)).filter(Boolean) as AssetDashboard[];
+  function tone(state: string): string {
+    if (state === 'RUNNING') return 'running';
+    if (state === 'FAULTED') return 'faulted';
+    if (state === 'MAINTENANCE') return 'maintenance';
+    if (state === 'STARTUP') return 'startup';
+    return 'idle';
+  }
+
+  $: ordered = ORDER.map((id) => assets.find((asset) => asset.asset === id)).filter(Boolean) as AssetDashboard[];
 </script>
 
-<div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
-  <div class="text-xs uppercase tracking-widest text-gray-400 mb-4 font-bold">
-    Aluminium Profile Line 1 — Live Floor View
-  </div>
+<section class="floor-map">
+  <div class="floor-map__heading">Aluminium Profile Line 1 — Live Floor View</div>
 
-  <div class="flex items-center gap-0 overflow-x-auto">
+  <div class="floor-map__strip">
     {#each ordered as asset, i}
-      <!-- Machine card -->
-      <div
-        class="shrink-0 w-44 border-2 rounded-lg p-3 transition-all duration-500 {STATE_BG[asset.state] ?? STATE_BG.UNKNOWN}"
-      >
-        <!-- Icon + status dot -->
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-2xl">{ICONS[asset.asset_type] ?? '⚙'}</span>
-          <div class="relative">
-            <div class="w-3 h-3 rounded-full {STATE_DOT[asset.state] ?? 'bg-gray-600'}"></div>
-          </div>
+      <article class="machine-card machine-card--{tone(asset.state)}">
+        <div class="machine-card__top">
+          <span class="machine-card__icon">{ICONS[asset.asset_type] ?? '[]'}</span>
+          <span class="machine-card__state-dot machine-card__state-dot--{tone(asset.state)}"></span>
         </div>
 
-        <!-- Name -->
-        <div class="text-xs font-bold text-white leading-tight mb-1">{asset.display_name}</div>
+        <div class="machine-card__name">{asset.display_name}</div>
+        <div class="machine-card__state machine-card__state--{tone(asset.state)}">{asset.state}</div>
 
-        <!-- State -->
-        <div class="text-xs font-mono {asset.state === 'FAULTED' ? 'text-red-300' : asset.state === 'RUNNING' ? 'text-green-300' : 'text-gray-400'}">
-          {asset.state}
-        </div>
-
-        <!-- Fault label -->
         {#if asset.fault_code > 0}
-          <div class="mt-1 text-xs text-red-300 bg-red-900/50 rounded px-1 py-0.5 leading-tight">
+          <div class="machine-card__fault">
             {FAULT_LABELS[asset.fault_code] ?? `F${asset.fault_code}`}
           </div>
         {/if}
 
-        <!-- Cost accumulating -->
         {#if asset.cost_so_far_myr > 0.01}
-          <div class="mt-1 text-xs text-amber-300 font-mono">
-            −RM {asset.cost_so_far_myr.toFixed(0)}
-          </div>
+          <div class="machine-card__cost">RM {asset.cost_so_far_myr.toFixed(0)} cost</div>
         {/if}
-      </div>
+      </article>
 
-      <!-- Arrow between machines -->
       {#if i < ordered.length - 1}
-        <div class="shrink-0 flex flex-col items-center px-1 text-gray-500">
-          <svg width="32" height="16" viewBox="0 0 32 16" fill="none">
-            <path d="M0 8 H26 M22 3 L28 8 L22 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <div class="flow-link" aria-hidden="true">
+          <svg width="36" height="18" viewBox="0 0 36 18" fill="none">
+            <path d="M1 9 H30 M25 4 L33 9 L25 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          <div class="text-xs text-gray-600 -mt-1">WIP</div>
+          <span>WIP</span>
         </div>
       {/if}
     {/each}
 
-    <!-- Finished goods indicator -->
-    <div class="shrink-0 flex flex-col items-center pl-2 text-green-600">
-      <svg width="28" height="16" viewBox="0 0 28 16" fill="none">
-        <path d="M0 8 H20 M16 3 L22 8 L16 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <div class="flow-link flow-link--fg" aria-hidden="true">
+      <svg width="32" height="18" viewBox="0 0 32 18" fill="none">
+        <path d="M1 9 H25 M20 4 L29 9 L20 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-      <div class="text-xs text-green-700 -mt-1 font-semibold">FG</div>
+      <span>FG</span>
     </div>
   </div>
-</div>
+</section>
+
+<style>
+  .floor-map {
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  }
+
+  .floor-map__heading {
+    margin-bottom: 16px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .floor-map__strip {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .machine-card {
+    min-width: 168px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .machine-card--running {
+    background: linear-gradient(180deg, #ecfdf5, #dcfce7);
+    border-color: #86efac;
+  }
+
+  .machine-card--faulted {
+    background: linear-gradient(180deg, #fef2f2, #fee2e2);
+    border-color: #fca5a5;
+  }
+
+  .machine-card--maintenance {
+    background: linear-gradient(180deg, #fffbeb, #fef3c7);
+    border-color: #fcd34d;
+  }
+
+  .machine-card--startup {
+    background: linear-gradient(180deg, #eff6ff, #dbeafe);
+    border-color: #93c5fd;
+  }
+
+  .machine-card--idle {
+    background: linear-gradient(180deg, #f8fafc, #e2e8f0);
+    border-color: #cbd5e1;
+  }
+
+  .machine-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .machine-card__icon {
+    font-size: 1.45rem;
+  }
+
+  .machine-card__state-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #94a3b8;
+  }
+
+  .machine-card__state-dot--running { background: #22c55e; }
+  .machine-card__state-dot--faulted { background: #ef4444; }
+  .machine-card__state-dot--maintenance { background: #f59e0b; }
+  .machine-card__state-dot--startup { background: #3b82f6; }
+  .machine-card__state-dot--idle { background: #94a3b8; }
+
+  .machine-card__name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 6px;
+  }
+
+  .machine-card__state {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .machine-card__state--running { color: #166534; }
+  .machine-card__state--faulted { color: #b91c1c; }
+  .machine-card__state--maintenance { color: #b45309; }
+  .machine-card__state--startup { color: #1d4ed8; }
+  .machine-card__state--idle { color: #475569; }
+
+  .machine-card__fault {
+    margin-top: 10px;
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    background: #7f1d1d;
+    color: #ffffff;
+  }
+
+  .machine-card__cost {
+    margin-top: 10px;
+    font-size: 0.76rem;
+    color: #9a3412;
+    font-weight: 700;
+  }
+
+  .flow-link {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    color: #64748b;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .flow-link--fg {
+    color: #15803d;
+  }
+
+  @media (max-width: 720px) {
+    .machine-card {
+      min-width: 152px;
+    }
+  }
+</style>

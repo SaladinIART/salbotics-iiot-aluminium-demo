@@ -6,7 +6,7 @@ import struct
 import threading
 import time
 
-from pymodbus.datastore import ModbusDeviceContext, ModbusSequentialDataBlock, ModbusServerContext
+from pymodbus.datastore import ModbusSequentialDataBlock, ModbusServerContext, ModbusSlaveContext
 from pymodbus.server import StartTcpServer
 
 from iiot_stack.industrial import load_assets
@@ -34,8 +34,8 @@ def uint16_words(value: int) -> list[int]:
 def build_context() -> ModbusServerContext:
     # 256 holding registers — 7 assets × 20-word stride needs addresses 0..127; +headroom.
     block = ModbusSequentialDataBlock(0, [0] * 256)
-    slave = ModbusDeviceContext(hr=block)
-    return ModbusServerContext(devices={1: slave}, single=False)
+    slave = ModbusSlaveContext(hr=block)
+    return ModbusServerContext(slaves={1: slave}, single=False)
 
 
 def serve() -> None:

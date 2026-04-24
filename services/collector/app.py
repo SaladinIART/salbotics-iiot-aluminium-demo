@@ -75,7 +75,7 @@ def run() -> None:
                     result = modbus_client.read_holding_registers(
                         address=asset["base_address"] + signal["address_offset"],
                         count=signal["word_count"],
-                        device_id=asset["unit_id"],
+                        slave=asset["unit_id"],
                     )
                     if result.isError():
                         raise RuntimeError(f"modbus read error for {asset['asset_id']} {signal['tag_id']}: {result}")

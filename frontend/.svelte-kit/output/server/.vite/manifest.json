@@ -260,6 +260,9 @@
     "imports": [
       "_renderer.js",
       "_index-server.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.ClwxtyzD.css"
     ]
   },
   "src/routes/kpis/+page.svelte": {

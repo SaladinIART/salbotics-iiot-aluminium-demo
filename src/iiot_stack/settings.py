@@ -59,7 +59,7 @@ class APISettings:
 @dataclass(frozen=True)
 class CollectorSettings:
     site: str = os.getenv("SITE", "demo-site")
-    line: str = os.getenv("LINE", "packaging-line-1")
+    line: str = os.getenv("LINE", "aluminium-profile-line-1")
     modbus_host: str = os.getenv("MODBUS_HOST", "127.0.0.1")
     modbus_port: int = int(os.getenv("MODBUS_PORT", "1502"))
     mqtt_host: str = os.getenv("MQTT_HOST", "127.0.0.1")

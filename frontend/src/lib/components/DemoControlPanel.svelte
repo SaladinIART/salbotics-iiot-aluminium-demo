@@ -14,48 +14,42 @@
       name: 'NORMAL',
       label: 'Normal',
       description: 'All 7 stations running. Profile throughput on target.',
-      cls: 'border-green-600 hover:bg-green-900/40',
-      active: 'bg-green-800/60 border-green-400 ring-2 ring-green-500',
+      tone: 'normal',
       flagship: false,
     },
     {
       name: 'QUALITY_HOLD_QUENCH',
       label: 'Quality Hold — Quench',
-      description: 'Quench flow drops + exit temp rises. Automotive Customer B batch on P2 hold.',
-      cls: 'border-amber-600 hover:bg-amber-900/30',
-      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      description: 'Quench flow drops and exit temp rises. Automotive Customer B batch on P2 hold.',
+      tone: 'flagship',
       flagship: true,
     },
     {
       name: 'PRESS_BOTTLENECK',
       label: 'Press Bottleneck',
       description: 'Extrusion overload. Downstream starved, all 3 orders exposed.',
-      cls: 'border-amber-600 hover:bg-amber-900/30',
-      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      tone: 'warning',
       flagship: false,
     },
     {
       name: 'STRETCHER_BACKLOG',
       label: 'Stretcher Backlog',
-      description: 'Stretcher offline for grip change. WIP accumulating on cooling table.',
-      cls: 'border-amber-600 hover:bg-amber-900/30',
-      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      description: 'Stretcher offline for grip change. WIP accumulates on cooling table.',
+      tone: 'warning',
       flagship: false,
     },
     {
       name: 'AGEING_OVEN_DEVIATION',
       label: 'Ageing Oven Deviation',
-      description: 'Oven out of T6 band. MNC Customer A batch suspect — retest required.',
-      cls: 'border-amber-600 hover:bg-amber-900/30',
-      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      description: 'Oven out of T6 band. MNC Customer A batch suspect and queued for retest.',
+      tone: 'warning',
       flagship: false,
     },
     {
       name: 'EMERGENCY_PRESS_TRIP',
       label: 'Emergency Press Trip',
       description: 'Line down. All 3 customer orders at risk. Invoke BCP.',
-      cls: 'border-red-900 hover:bg-red-950/40',
-      active: 'bg-red-950/70 border-red-300 ring-2 ring-red-400',
+      tone: 'critical',
       flagship: false,
     },
   ] as const;
@@ -74,43 +68,205 @@
   }
 </script>
 
-<div class="bg-gray-900 border border-gray-600 rounded-lg p-4">
-  <div class="flex items-center justify-between mb-3">
-    <div class="text-xs uppercase tracking-widest text-gray-400 font-bold">
-      Demo Control Panel
+<section class="control-panel">
+  <header class="control-panel__header">
+    <div>
+      <div class="control-panel__eyebrow">Demo Control Panel</div>
+      <div class="control-panel__subhead">Scenario rehearsal and live-switch controls</div>
     </div>
-    <div class="text-xs text-gray-500 italic">For presentation use only</div>
-  </div>
+    <div class="control-panel__note">For presentation use only</div>
+  </header>
 
-  <div class="grid grid-cols-3 gap-2">
+  <div class="scenario-grid">
     {#each SCENARIOS as scenario}
       <button
         on:click={() => trigger(scenario.name)}
         disabled={loading}
-        class="border rounded-lg p-3 text-left transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-          {currentScenario === scenario.name ? scenario.active : 'border-opacity-60 ' + scenario.cls}
-          {scenario.flagship ? 'ring-1 ring-amber-300/60' : ''}"
+        class="scenario-button scenario-button--{scenario.tone} {currentScenario === scenario.name ? 'scenario-button--active' : ''}"
       >
-        <div class="flex items-center justify-between mb-1">
-          <div class="font-semibold text-sm text-white">{scenario.label}</div>
+        <div class="scenario-button__row">
+          <span class="scenario-button__label">{scenario.label}</span>
           {#if scenario.flagship}
-            <span class="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Flagship</span>
+            <span class="scenario-button__flag">Flagship</span>
           {/if}
         </div>
-        <div class="text-xs text-gray-400 leading-tight">{scenario.description}</div>
+        <div class="scenario-button__description">{scenario.description}</div>
       </button>
     {/each}
   </div>
 
   {#if error}
-    <div class="mt-2 text-xs text-red-400 bg-red-900/30 rounded px-2 py-1">{error}</div>
+    <div class="panel-message panel-message--error">{error}</div>
   {/if}
 
   {#if loading}
-    <div class="mt-2 text-xs text-blue-400 text-center animate-pulse">Switching scenario…</div>
+    <div class="panel-message panel-message--loading">Switching scenario...</div>
   {/if}
 
-  <div class="mt-2 text-xs text-gray-600 text-center">
-    Scenarios auto-reset to NORMAL after 10 minutes
-  </div>
-</div>
+  <div class="control-panel__footer">Scenarios auto-reset to NORMAL after 10 minutes.</div>
+</section>
+
+<style>
+  .control-panel {
+    background: #ffffff;
+    border: 1px solid #dbe2ea;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+  }
+
+  .control-panel__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+
+  .control-panel__eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .control-panel__subhead {
+    margin-top: 6px;
+    color: #475569;
+    font-size: 0.92rem;
+  }
+
+  .control-panel__note {
+    color: #64748b;
+    font-size: 0.82rem;
+    font-style: italic;
+    white-space: nowrap;
+  }
+
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .scenario-button {
+    border-radius: 14px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .scenario-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+  }
+
+  .scenario-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .scenario-button--normal {
+    border-color: #86efac;
+    background: linear-gradient(180deg, #ecfdf5, #f0fdf4);
+  }
+
+  .scenario-button--flagship,
+  .scenario-button--warning {
+    border-color: #fcd34d;
+    background: linear-gradient(180deg, #fffbeb, #fffbeb);
+  }
+
+  .scenario-button--critical {
+    border-color: #fca5a5;
+    background: linear-gradient(180deg, #fef2f2, #fff1f2);
+  }
+
+  .scenario-button--active {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+    border-color: #60a5fa;
+  }
+
+  .scenario-button__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .scenario-button__label {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .scenario-button__flag {
+    flex: 0 0 auto;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #111827;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .scenario-button__description {
+    color: #475569;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .panel-message {
+    margin-top: 12px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.84rem;
+    font-weight: 600;
+  }
+
+  .panel-message--error {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+
+  .panel-message--loading {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
+
+  .control-panel__footer {
+    margin-top: 12px;
+    color: #64748b;
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  @media (max-width: 1100px) {
+    .scenario-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .control-panel__header {
+      flex-direction: column;
+    }
+
+    .control-panel__note {
+      white-space: normal;
+    }
+
+    .scenario-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

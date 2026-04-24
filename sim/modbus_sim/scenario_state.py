@@ -1,4 +1,4 @@
-"""Shared in-memory scenario lock for the Modbus simulator.
+"""Shared in-memory scenario state for the Modbus simulator.
 
 The scenario_api Flask endpoint writes here; the Modbus updater thread reads here.
 All access is protected by a single threading.Lock for thread safety.
@@ -10,7 +10,7 @@ import time
 
 _lock = threading.Lock()
 _scenario: str = "NORMAL"
-_expires_at: float = 0.0  # epoch seconds; 0 = auto-cycling (no lock)
+_expires_at: float = 0.0  # epoch seconds; 0 = pinned indefinitely
 
 # ─── Scenario definitions ──────────────────────────────────────────────────────
 # Aluminium Profile Line 1 — 7 stations, 6 scenarios.
@@ -102,7 +102,12 @@ AUTO_EXPIRE_SECONDS = 600  # 10 minutes
 
 
 def set_scenario(name: str) -> None:
-    """Lock the simulator to a named scenario for AUTO_EXPIRE_SECONDS."""
+    """Set the simulator to a named scenario.
+
+    Non-normal demo scenarios auto-reset to ``NORMAL`` after AUTO_EXPIRE_SECONDS.
+    ``NORMAL`` is an explicit, stable all-running state rather than a return to
+    background cycling.
+    """
     if name not in SCENARIO_STATES:
         raise ValueError(f"Unknown scenario: {name!r}. Valid: {list(SCENARIO_STATES)}")
     with _lock:
@@ -122,10 +127,8 @@ def get_scenario() -> str:
 
 
 def get_override(asset_id: str) -> tuple[int, int] | None:
-    """Return (state_code, fault_code) override for an asset, or None if in NORMAL cycling."""
+    """Return the active scenario state tuple for a given asset."""
     scenario = get_scenario()
-    if scenario == "NORMAL":
-        return None
     return SCENARIO_STATES[scenario].get(asset_id)
 
 
