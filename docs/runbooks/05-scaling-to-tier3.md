@@ -86,10 +86,10 @@ imageRegistry: ghcr.io/saladinart   # your GHCR namespace
 imageTag: "1.0.0"
 
 secrets:
-  postgresPassword: "your-strong-db-password"
-  mqttPassword: "your-strong-mqtt-password"
-  apiKey: "your-api-key-here"
-  grafanaAdminPassword: "your-grafana-password"
+  postgresPassword: <set-locally-outside-repo>
+  mqttPassword: <set-locally-outside-repo>
+  apiKey: <set-locally-outside-repo>
+  grafanaAdminPassword: <set-locally-outside-repo>
 
 ingress:
   enabled: true
