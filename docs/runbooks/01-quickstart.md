@@ -8,8 +8,8 @@
 ## 1. Clone and configure
 
 ```bash
-git clone https://github.com/SaladinIART/nexus-iiot-platform.git
-cd nexus-iiot-platform
+git clone https://github.com/SaladinIART/salbotics-iiot-aluminium-demo.git
+cd salbotics-iiot-aluminium-demo
 cp .env.example .env
 ```
 
@@ -30,7 +30,7 @@ The default `.env` values work out of the box for a local demo. You only need to
 docker compose up --build -d
 ```
 
-This starts 7 services in dependency order:
+This starts 8 services in dependency order:
 
 | Service | Starts after | Ready when |
 |---------|-------------|-----------|
@@ -66,9 +66,9 @@ You should see rows like:
 ```
     asset    |  signal   | value  |             ts
 -------------+-----------+--------+----------------------------
- feeder-01   | temp      |  72.4  | 2025-10-27 10:30:01+00
- feeder-01   | rpm       | 1480.0 | 2025-10-27 10:30:01+00
- mixer-01    | pressure  |   3.2  | 2025-10-27 10:30:00+00
+ quench-01   | quench_flow_lpm      | 221.8 | 2026-04-24 13:40:01+00
+ quench-01   | exit_temp_c          |  57.2 | 2026-04-24 13:40:01+00
+ press-01    | ram_force_kn         | 1958.4 | 2026-04-24 13:40:00+00
 ```
 
 ---
@@ -77,9 +77,15 @@ You should see rows like:
 
 | Interface | URL | Credentials |
 |-----------|-----|-------------|
-| NEXUS Dashboard | http://localhost:8080 | API Key in Admin page |
+| NEXUS Web App | http://localhost:8080 | API Key in Admin page |
 | Swagger API Docs | http://localhost:8080/docs | — |
 | Grafana | http://localhost:3000 | admin / change_me_now |
+
+For the aluminium demo flow:
+
+- open `http://localhost:8080/`
+- navigate to **Executive View**
+- open Grafana in a second tab and load **Aluminium Profile Decision Board**
 
 ### First API call
 
@@ -88,26 +94,31 @@ curl -s -H "X-API-Key: nexus-dev-key-change-me" \
   http://localhost:8080/api/v1/assets | python3 -m json.tool
 ```
 
-Expected: JSON array of 4 assets (feeder-01, mixer-01, conveyor-01, packer-01).
+Expected: JSON array of 7 aluminium stations (`furnace-01`, `press-01`, `quench-01`, `cooling-01`, `stretcher-01`, `saw-01`, `ageing-01`).
 
 ---
 
-## 5. Trigger a test alert
+## 5. Trigger the flagship demo scenario
 
-Inject an out-of-bounds value directly into TimescaleDB to trigger the auto-close cycle:
+Use the demo scenario endpoint instead of inserting fake raw telemetry:
 
 ```bash
-docker exec iiot-timescaledb psql -U iiot -d iiot -c "
-  INSERT INTO telemetry (ts, site, line_name, asset, signal, value, quality, state, fault_code, seq)
-  VALUES (now(), 'demo-site', 'line-1', 'feeder-01', 'temp', 999.0, 'good', 'RUNNING', 0, 1);
-"
+curl -s -X POST \
+  -H "X-API-Key: nexus-dev-key-change-me" \
+  http://localhost:8080/api/v1/demo/scenario/QUALITY_HOLD_QUENCH | python3 -m json.tool
 ```
 
-Within ~2 seconds the alerting service detects the spike (Layer 1 threshold or Layer 2 statistical). Check:
+Within ~10 seconds:
+
+- the Svelte executive dashboard banner should turn `AMBER`
+- Grafana should populate the decision board with the P2 quality-hold actions
+- `quench-01` should show low flow and elevated exit temperature
+
+Check the current scenario:
 
 ```bash
-docker exec iiot-timescaledb psql -U iiot -d iiot -c \
-  "SELECT asset, signal, alert_type, severity, state, opened_at FROM alerts ORDER BY opened_at DESC LIMIT 3;"
+curl -s -H "X-API-Key: nexus-dev-key-change-me" \
+  http://localhost:8080/api/v1/demo/scenario | python3 -m json.tool
 ```
 
 ---
@@ -125,8 +136,8 @@ docker compose down -v       # stop and delete all volumes (clean slate)
 
 | Problem | Resolution |
 |---------|-----------|
-| `docker compose up` fails — port conflict | Check ports 1883, 5432, 3000, 8000 are free: `netstat -tulpn \| grep -E '1883\|5432\|3000\|8000'` |
-| `timescaledb` keeps restarting | Delete its volume: `docker volume rm nexus-iiot-platform_timescaledb_data` |
+| `docker compose up` fails — port conflict | Check ports 1883, 5432, 3000, 8080 are free before retrying |
+| `timescaledb` keeps restarting | Remove the Timescale volume for this compose project, then `docker compose up -d` again |
 | No telemetry in DB after 60s | `docker logs iiot-collector` — check Modbus connection errors |
 | API returns 401 | Ensure `X-API-Key` header matches `API_KEY` in `.env` |
 | Grafana shows "No data" | Confirm datasource is named `iiot-timescaledb` in provisioning |

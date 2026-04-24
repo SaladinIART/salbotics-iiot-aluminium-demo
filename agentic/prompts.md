@@ -49,7 +49,7 @@ Return pass or fail results with concrete reproduction steps.
 
 **Script (step-by-step)**:
 1. Open Grafana → *Aluminium Profile Decision Board* dashboard. Confirm GREEN health.
-2. In a second tab, open `http://localhost:8000/dashboard` (the Svelte executive view).
+2. In a second tab, open `http://localhost:8080/` and navigate to **Executive View** from the sidebar.
 3. Click `Quality Hold — Quench` in the Demo Control Panel.
 4. Point out: Line Health → AMBER. Open alerts count → 1–2. Active Quality Holds → 1.
 5. Walk through the Decision Board rows top-down (P2 Quality first — that's the operator's first call).
@@ -59,7 +59,7 @@ Return pass or fail results with concrete reproduction steps.
 
 **Rehearsal tips**:
 - Before a live demo, run the scenario once and let it sit 60 seconds so the hourly-throughput panel has a dent in it.
-- If the Svelte UI still shows REL branding, `services/api/static/` wasn't rebuilt — rerun `npm run build` and copy the output.
+- If the Svelte UI still shows stale packaging-era copy, `services/api/static/` was not rebuilt — rerun the frontend build and refresh the API container.
 
 ## Recruiter Q&A — "Why aluminium? Why this stack?"
 

@@ -158,15 +158,15 @@ kubectl port-forward svc/nexus-grafana 3000:3000 -n nexus &
 ```
 
 Then open:
-- `http://localhost:8000` — NEXUS frontend
-- `http://localhost:8000/docs` — Swagger UI
+- `http://localhost:8080` — NEXUS frontend
+- `http://localhost:8080/docs` — Swagger UI
 - `http://localhost:3000` — Grafana
 
 **Verify the API:**
 
 ```bash
 curl -s -H "X-API-Key: your-api-key-here" \
-  http://localhost:8000/api/v1/assets | python3 -m json.tool
+http://localhost:8080/api/v1/assets | python3 -m json.tool
 ```
 
 ---

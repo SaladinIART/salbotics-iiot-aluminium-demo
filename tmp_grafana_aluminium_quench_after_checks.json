@@ -1,0 +1,12 @@
+{
+  "hasTitle": true,
+  "hasDecisionBoard": true,
+  "hasQualityRisk": true,
+  "hasBusinessRisk": true,
+  "hasTelemetry": true,
+  "hasQuenchAction": true,
+  "hasCustomerRisk": true,
+  "hasQuenchEvidence": true,
+  "hasManagementAction": true,
+  "hasTimeOverrideLabel": true
+}

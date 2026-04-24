@@ -16,7 +16,7 @@ The architecture is designed to scale from a single-host proof-of-concept to a m
 ═══════════════════════════════════════════════════════════════════════════════
 
   sim/modbus_sim/app.py
-  │  Assets: feeder-01 · mixer-01 · conveyor-01 · packer-01
+  │  Assets: furnace-01 · press-01 · quench-01 · cooling-01 · stretcher-01 · saw-01 · ageing-01
   │  Protocol: Modbus TCP :1502
   │  Signals: analog (float32), counter (int16), state, fault codes
   │  Pattern: scenario-based 90s state cycle with fault injection
@@ -154,7 +154,8 @@ The architecture is designed to scale from a single-host proof-of-concept to a m
   frontend/  Svelte 5, compiled to vanilla JS, served by FastAPI
 
   Routes:
-    /           Floor overview — live grid of AssetCards, updated by SSE
+    /           App shell + navigation entry
+    /dashboard  Executive dashboard — scenario banner, financial impact, actions, floor map
     /assets     Asset table with current state + last value
     /assets/[id]  Signal history chart (1h / 8h / 24h / 7d range picker)
     /alerts     Alert inbox — filter by state, acknowledge button
@@ -170,9 +171,10 @@ The architecture is designed to scale from a single-host proof-of-concept to a m
 ═══════════════════════════════════════════════════════════════════════════════
 
   Grafana :3000
-    operator_overview.json    telemetry trends, asset status
-    alert_history.json        alert timeline panel         ← Phase 2
-    production_kpis.json      OEE + throughput, multi-site ← Phase 6
+    overview.json             Aluminium Profile Decision Board
+                              line health · decision board · quality risk · business risk
+                              station process map · telemetry trends
+    production_kpis.json      supporting KPI view
 
 ═══════════════════════════════════════════════════════════════════════════════
  INFRASTRUCTURE LAYER

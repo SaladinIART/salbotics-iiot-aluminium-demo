@@ -116,6 +116,7 @@
       "type": "timeseries",
       "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
       "gridPos": { "h": 5, "w": 12, "x": 12, "y": 0 },
+      "timeFrom": "8h",
       "fieldConfig": {
         "defaults": {
           "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60 },
@@ -128,7 +129,7 @@
         {
           "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "time_series",
-          "rawSql": "SELECT time_bucket('1 hour', ts) AS time, MAX(value) - LAG(MAX(value)) OVER (ORDER BY time_bucket('1 hour', ts)) AS profiles_per_hour FROM telemetry WHERE asset = 'ageing-01' AND signal = 'aged_batch_count' AND ts > NOW() - INTERVAL '8 hours' GROUP BY 1 ORDER BY 1;",
+          "rawSql": "SELECT time_bucket('1 hour', ts) AS time, 'profiles_per_hour' AS metric, MAX(value) - MIN(value) AS value FROM telemetry WHERE asset = 'ageing-01' AND signal = 'aged_batch_count' AND ts > NOW() - INTERVAL '8 hours' GROUP BY 1 ORDER BY 1;",
           "refId": "A"
         }
       ]

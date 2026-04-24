@@ -25,7 +25,7 @@ If you are using the built-in `modbus_sim`, open `contracts/register_map.json` a
 ```json
 {
   "asset": "pump-02",
-  "line": "line-1",
+  "line": "aluminium-profile-line-1",
   "unit_id": 5,
   "registers": [
     { "address": 100, "signal": "temp",     "scale": 0.1, "unit": "°C" },
@@ -44,7 +44,7 @@ For real hardware, skip this step — the collector reads from whatever IP/port/
 ```bash
 docker exec iiot-timescaledb psql -U iiot -d iiot -c "
   INSERT INTO asset_metadata (asset, display_name, asset_type, site, line_name, cell_name)
-  VALUES ('pump-02', 'Pump 02', 'pump', 'demo-site', 'line-1', 'cell-A')
+  VALUES ('pump-02', 'Pump 02', 'pump', 'demo-site', 'aluminium-profile-line-1', 'auxiliary')
   ON CONFLICT (asset) DO NOTHING;
 "
 ```
@@ -77,7 +77,7 @@ The alerting service picks up new rules within 60 seconds (the `RuleLoader` refr
 Verify:
 ```bash
 curl -s -H "X-API-Key: nexus-dev-key-change-me" \
-  "http://localhost:8000/api/v1/assets/pump-02" | python3 -m json.tool
+  "http://localhost:8080/api/v1/assets/pump-02" | python3 -m json.tool
 ```
 
 ---
@@ -112,7 +112,7 @@ docker exec iiot-timescaledb psql -U iiot -d iiot -c \
 
 # Asset appears in API
 curl -s -H "X-API-Key: nexus-dev-key-change-me" \
-  http://localhost:8000/api/v1/assets | python3 -m json.tool | grep pump-02
+  http://localhost:8080/api/v1/assets | python3 -m json.tool | grep pump-02
 
 # Alert rules loaded
 docker logs iiot-alerting | grep pump-02
@@ -125,7 +125,7 @@ docker logs iiot-alerting | grep pump-02
 1. Open Grafana at `http://localhost:3000`
 2. Open the **Floor Overview** dashboard → Edit
 3. Duplicate an existing time-series panel
-4. Change the SQL query — replace the `asset = 'feeder-01'` filter with `asset = 'pump-02'`
+4. Change the SQL query — replace the `asset = 'quench-01'` or `asset = 'press-01'` filter with `asset = 'pump-02'`
 5. Save the dashboard
 
 ---

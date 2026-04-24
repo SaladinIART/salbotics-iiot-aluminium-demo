@@ -1,10 +1,10 @@
-# NEXUS — Industrial Intelligence Platform
+# NEXUS — Aluminium Profile Decision Demo
 
 > From Factory Floor to Decision Desk
 
-![CI](https://github.com/SaladinIART/IIoT-Telemetry-Stack/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/SaladinIART/salbotics-iiot-aluminium-demo/actions/workflows/ci.yml/badge.svg)
 
-A self-contained IIoT monitoring platform built to demonstrate the full Digital Transformation stack — from Modbus register reads to a live browser dashboard with real-time alerts. Designed for Penang manufacturing environments. Deployable with a single command.
+A self-contained IIoT monitoring platform built around a runnable aluminium extrusion demo — from Modbus register reads to a live executive dashboard and Grafana decision board with real-time alerts. Designed for Penang manufacturing environments. Deployable with a single command.
 
 ---
 
@@ -23,7 +23,7 @@ A self-contained IIoT monitoring platform built to demonstrate the full Digital 
 
 ```
 OT LAYER
-  sim/modbus_sim        Modbus TCP :1502  (4 assets: feeder, mixer, conveyor, packer)
+  sim/modbus_sim        Modbus TCP :1502  (7 stations: furnace, press, quench, cooling, stretcher, saw, ageing)
 
 COLLECTION
   services/collector    Polls Modbus → publishes MQTT
@@ -41,6 +41,8 @@ PROCESSING  (parallel MQTT subscribers)
 STORAGE
   TimescaleDB           telemetry · events · alerts · alert_rules · sites · asset_metadata
                         Views: v_asset_current_state · v_recent_alerts · v_kpi_summary
+                               v_aluminium_line_current_state · v_aluminium_decision_board
+                               v_aluminium_quality_risk · v_aluminium_business_risk
 
 API
   services/api          FastAPI + Uvicorn
@@ -53,14 +55,15 @@ API
 
 FRONTEND
   frontend/             Svelte 5, compiled vanilla JS
-                        /           Floor overview — live asset grid
+                        /           Application shell + Executive View navigation
+                        /dashboard  Executive dashboard — aluminium scenario banner, actions, floor map
                         /assets     Asset browser + signal history chart
                         /alerts     Alert inbox + acknowledge
                         /kpis       OEE + production KPIs
                         /admin      Threshold editor + API key
 
 VISUALIZATION
-  Grafana :3000         Operator dashboards (direct TimescaleDB queries)
+  Grafana :3000         Aluminium Profile Decision Board (primary live demo surface)
 ```
 
 **Scale tiers — no code rewrites, only config changes:**
@@ -90,19 +93,20 @@ VISUALIZATION
 
 ---
 
-## Screenshots
+## Live Demo Surfaces
 
-> Run `docker compose up --build` and open `http://localhost:8080` to see these live.
+The current aluminium demo is designed to be shown in two tabs:
 
-| Floor Overview | Alert Inbox | KPI Dashboard |
-|---|---|---|
-| ![Floor Overview](docs/screenshots/floor-overview.png) | ![Alerts](docs/screenshots/alerts.png) | ![KPIs](docs/screenshots/kpis.png) |
+- Grafana: `http://localhost:3000` → **Aluminium Profile Decision Board**
+- Web app: `http://localhost:8080/` → open **Executive View** from the sidebar
 
-| Grafana Operator View | Asset Detail |
-|---|---|
-| ![Grafana](docs/screenshots/grafana-overview.png) | ![Asset Detail](docs/screenshots/asset-detail.png) |
+Flagship scenario:
 
-*(Screenshots taken from a local demo run — `docker compose up --build`)*
+- `QUALITY_HOLD_QUENCH`
+- quench flow drops below spec
+- exit temperature rises above the T5/T6 window
+- Grafana shows the management action board
+- Svelte shows the executive summary and floor-map impact
 
 ---
 
@@ -110,16 +114,16 @@ VISUALIZATION
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/SaladinIART/IIoT-Telemetry-Stack.git nexus-iiot-platform
-cd nexus-iiot-platform
+git clone https://github.com/SaladinIART/salbotics-iiot-aluminium-demo.git
+cd salbotics-iiot-aluminium-demo
 cp .env.example .env        # review and adjust passwords
 
 # 2. Start the full stack
 docker compose up --build
 
 # 3. Open dashboards
-#    Grafana operator dashboard  →  http://localhost:3000   (admin / change_me_now)
-#    NEXUS web app               →  http://localhost:8080   (available from Phase 4)
+#    Grafana decision board      →  http://localhost:3000   (admin / change_me_now)
+#    NEXUS web app               →  http://localhost:8080
 #    API docs (Swagger)          →  http://localhost:8080/docs
 ```
 
@@ -135,7 +139,7 @@ docker compose exec timescaledb psql -U iiot -d iiot \
 ## Project Structure
 
 ```
-nexus-iiot-platform/
+salbotics-iiot-aluminium-demo/
 ├── contracts/              JSON schemas + MQTT topic contract
 ├── db/migrations/          TimescaleDB schema (hypertables, views, alerts)
 ├── docs/
@@ -152,7 +156,7 @@ nexus-iiot-platform/
 │   ├── api/                FastAPI REST + SSE service (Phase 3)
 │   ├── collector/          Modbus → MQTT
 │   └── ingestor/           MQTT → TimescaleDB
-├── sim/modbus_sim/         4-asset Modbus TCP simulator
+├── sim/modbus_sim/         7-station aluminium line Modbus TCP simulator
 ├── src/iiot_stack/         Shared Python library
 ├── tests/                  Unit + integration tests
 ├── docker-compose.yml      Tier 1 — single host
@@ -186,6 +190,7 @@ pytest tests/integration -m integration  # requires Docker
 | [ADR-002 FastAPI + Svelte](docs/adr/002-fastapi-svelte-frontend.md) | Why FastAPI + Svelte |
 | [ADR-003 Alert design](docs/adr/003-alert-three-layer.md) | 3-layer alert architecture |
 | [ADR-004 MQTT topics](docs/adr/004-isa95-topic-hierarchy.md) | ISA-95 topic naming convention |
+| [Aluminium line spec](docs/demo/aluminium_profile_line_spec.md) | Demo domain model, scenarios, and station semantics |
 | [Quickstart runbook](docs/runbooks/01-quickstart.md) | Zero to running stack |
 | [Add a new asset](docs/runbooks/02-adding-new-asset.md) | Extend to new equipment |
 | [Tune alerts](docs/runbooks/03-alert-tuning.md) | Threshold and ML configuration |

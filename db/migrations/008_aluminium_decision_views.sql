@@ -55,9 +55,7 @@ secondary_signals AS (
 line_rollup AS (
     SELECT
         CASE
-            WHEN EXISTS (SELECT 1 FROM v_asset_current_state WHERE asset = 'press-01' AND state IN ('FAULTED','MAINTENANCE'))
-                THEN 'RED'
-            WHEN EXISTS (SELECT 1 FROM v_asset_current_state WHERE asset = 'quench-01' AND state IN ('FAULTED','MAINTENANCE'))
+            WHEN EXISTS (SELECT 1 FROM v_asset_current_state WHERE asset = 'press-01' AND fault_code = 219)
                 THEN 'RED'
             WHEN EXISTS (SELECT 1 FROM v_asset_current_state WHERE state = 'FAULTED')
                 THEN 'AMBER'

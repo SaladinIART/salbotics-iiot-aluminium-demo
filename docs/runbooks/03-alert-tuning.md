@@ -28,16 +28,16 @@ docker exec iiot-timescaledb psql -U iiot -d iiot -c \
 ### Update a limit
 
 ```bash
-# Raise the temp warning threshold for feeder-01
+# Raise the quench flow warning floor for quench-01
 docker exec iiot-timescaledb psql -U iiot -d iiot -c \
-  "UPDATE alert_rules SET warn_high = 90.0 WHERE asset = 'feeder-01' AND signal = 'temp';"
+  "UPDATE alert_rules SET warn_low = 175.0 WHERE asset = 'quench-01' AND signal = 'quench_flow_lpm';"
 ```
 
 ### Disable a rule without deleting it
 
 ```bash
 docker exec iiot-timescaledb psql -U iiot -d iiot -c \
-  "UPDATE alert_rules SET enabled = FALSE WHERE asset = 'feeder-01' AND signal = 'rpm';"
+  "UPDATE alert_rules SET enabled = FALSE WHERE asset = 'ageing-01' AND signal = 'oven_temp_c';"
 ```
 
 ### Threshold boundary behaviour
@@ -155,7 +155,7 @@ curl -s -X POST \
   -H "X-API-Key: nexus-dev-key-change-me" \
   -H "Content-Type: application/json" \
   -d '{}' \
-  "http://localhost:8000/api/v1/alerts/<alert-id>/acknowledge"
+  "http://localhost:8080/api/v1/alerts/<alert-id>/acknowledge"
 ```
 
 State transitions:

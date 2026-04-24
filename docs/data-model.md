@@ -16,9 +16,9 @@ The core time-series table. Partitioned by `ts` in 7-day chunks. Compression ena
 |--------|------|-------------|
 | `ts` | `TIMESTAMPTZ NOT NULL` | Measurement timestamp (partition key) |
 | `site` | `TEXT NOT NULL` | Site identifier (e.g., `demo-site`) |
-| `line_name` | `TEXT NOT NULL` | Production line (e.g., `line-1`) |
-| `asset` | `TEXT NOT NULL` | Asset identifier (e.g., `feeder-01`) |
-| `signal` | `TEXT NOT NULL` | Signal name (e.g., `temp`, `rpm`) |
+| `line_name` | `TEXT NOT NULL` | Production line (e.g., `aluminium-profile-line-1`) |
+| `asset` | `TEXT NOT NULL` | Asset identifier (e.g., `quench-01`) |
+| `signal` | `TEXT NOT NULL` | Signal name (e.g., `quench_flow_lpm`, `exit_temp_c`) |
 | `value` | `DOUBLE PRECISION NOT NULL` | Measured value |
 | `quality` | `TEXT NOT NULL` | `good`, `bad`, `stale`, or `uncertain` |
 | `state` | `TEXT NOT NULL` | Asset operational state at time of reading |
@@ -89,7 +89,7 @@ Static reference data for registered assets.
 |--------|------|-------------|
 | `asset` | `TEXT PRIMARY KEY` | Asset identifier |
 | `display_name` | `TEXT NOT NULL` | Human-readable name for UI |
-| `asset_type` | `TEXT NOT NULL` | Equipment category (e.g., `feeder`, `pump`) |
+| `asset_type` | `TEXT NOT NULL` | Equipment category (e.g., `quench`, `press`, `pump`) |
 | `site` | `TEXT NOT NULL REFERENCES sites(site_id)` | Site this asset belongs to |
 | `line_name` | `TEXT NOT NULL` | Production line |
 | `cell_name` | `TEXT` | Manufacturing cell (optional) |
@@ -169,6 +169,19 @@ Last 100 alerts across all assets, newest-first. Joins `asset_metadata` for `ass
 ### `site_assets`
 
 Cross-join of `sites` and `asset_metadata`. Useful for multi-site asset listings. Not currently exposed via REST but available for Grafana queries.
+
+---
+
+### Aluminium decision-demo views
+
+The runnable aluminium demo adds four higher-level views used by both the executive dashboard and Grafana:
+
+| View | Purpose |
+|------|---------|
+| `v_aluminium_line_current_state` | Current station state, analogue evidence, line health, inferred scenario |
+| `v_aluminium_decision_board` | Scenario-specific recommended actions, owners, priority order |
+| `v_aluminium_quality_risk` | Batch/order/customer exposure for current quality-relevant alerts |
+| `v_aluminium_business_risk` | Customer-level value-at-risk rollup |
 
 ---
 

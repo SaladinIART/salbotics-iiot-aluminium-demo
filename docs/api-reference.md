@@ -1,7 +1,7 @@
 # NEXUS API Reference
 
-Base URL: `http://localhost:8000`
-Full interactive docs: `http://localhost:8000/docs` (Swagger UI) · `http://localhost:8000/redoc`
+Base URL: `http://localhost:8080`
+Full interactive docs: `http://localhost:8080/docs` (Swagger UI) · `http://localhost:8080/redoc`
 
 ## Authentication
 
@@ -31,6 +31,36 @@ No authentication required.
 
 ---
 
+## Executive Demo
+
+### `GET /api/v1/dashboard`
+
+Returns the aluminium executive summary used by the Svelte dashboard.
+
+### `GET /api/v1/demo/scenario`
+
+Returns the currently active aluminium demo scenario.
+
+### `POST /api/v1/demo/scenario/{name}`
+
+Triggers one of the supported demo scenarios:
+
+- `NORMAL`
+- `QUALITY_HOLD_QUENCH`
+- `PRESS_BOTTLENECK`
+- `STRETCHER_BACKLOG`
+- `AGEING_OVEN_DEVIATION`
+- `EMERGENCY_PRESS_TRIP`
+
+**Example**
+```bash
+curl -s -X POST \
+  -H "X-API-Key: nexus-dev-key-change-me" \
+  http://localhost:8080/api/v1/demo/scenario/QUALITY_HOLD_QUENCH
+```
+
+---
+
 ## Assets
 
 ### `GET /api/v1/assets`
@@ -42,11 +72,11 @@ Returns all registered assets with their current live state.
 ```json
 [
   {
-    "asset": "feeder-01",
-    "display_name": "Feeder 01",
-    "asset_type": "feeder",
+    "asset": "quench-01",
+    "display_name": "Water Quench",
+    "asset_type": "quench",
     "site": "demo-site",
-    "line_name": "line-1",
+    "line_name": "aluminium-profile-line-1",
     "cell_name": null,
     "state": "RUNNING",
     "fault_code": 0,
@@ -87,7 +117,7 @@ Returns historical telemetry for one asset, newest-first.
 **Example**
 ```bash
 curl -s -H "X-API-Key: nexus-dev-key-change-me" \
-  "http://localhost:8000/api/v1/assets/feeder-01/telemetry?signal=temp&limit=10"
+  "http://localhost:8080/api/v1/assets/quench-01/telemetry?signal=quench_flow_lpm&limit=10"
 ```
 
 **Response 200** — array of `TelemetryPoint`
@@ -95,9 +125,9 @@ curl -s -H "X-API-Key: nexus-dev-key-change-me" \
 [
   {
     "ts": "2025-10-27T10:30:01+00:00",
-    "asset": "feeder-01",
-    "signal": "temp",
-    "value": 72.4,
+    "asset": "quench-01",
+    "signal": "quench_flow_lpm",
+    "value": 221.8,
     "quality": "good",
     "state": "RUNNING"
   }
@@ -127,16 +157,16 @@ Returns recent alerts (max 100 by default), newest-first.
     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
     "opened_at": "2025-10-27T10:31:00+00:00",
     "site": "demo-site",
-    "line_name": "line-1",
-    "asset": "feeder-01",
-    "asset_display_name": "Feeder 01",
-    "signal": "temp",
+    "line_name": "aluminium-profile-line-1",
+    "asset": "quench-01",
+    "asset_display_name": "Water Quench",
+    "signal": "quench_flow_lpm",
     "alert_type": "threshold",
-    "severity": "critical",
-    "value": 96.2,
-    "threshold": 95.0,
+    "severity": "warning",
+    "value": 152.1,
+    "threshold": 180.0,
     "state": "OPEN",
-    "message": "temp exceeded threshold",
+    "message": "quench_flow_lpm 152 below warning low 180",
     "acked_at": null,
     "closed_at": null,
     "rule_id": "00000000-0000-0000-0000-000000000001"
@@ -178,9 +208,9 @@ Returns an OEE-proxy KPI summary per asset over a rolling time window.
 ```json
 [
   {
-    "asset": "feeder-01",
-    "display_name": "Feeder 01",
-    "asset_type": "feeder",
+    "asset": "press-01",
+    "display_name": "Extrusion Press",
+    "asset_type": "press",
     "window_hours": 8.0,
     "total_readings": 28800,
     "good_readings": 28650,
@@ -226,7 +256,7 @@ Pushes the 20 most recent telemetry rows every 2 seconds.
 
 **Frame format**
 ```
-data: {"ts":"2025-10-27T10:30:01+00:00","asset":"feeder-01","signal":"temp","value":72.4,"quality":"good","state":"RUNNING"}
+data: {"ts":"2026-04-24T13:40:01+00:00","asset":"quench-01","signal":"quench_flow_lpm","value":221.8,"quality":"good","state":"RUNNING"}
 ```
 
 ### `GET /api/v1/stream/alerts`
@@ -235,7 +265,7 @@ Pushes the 20 most recent OPEN alerts every 2 seconds.
 
 **Frame format**
 ```
-data: {"id":"3fa85f64-...","asset":"feeder-01","signal":"temp","alert_type":"threshold","severity":"critical","state":"OPEN","message":"temp exceeded threshold"}
+data: {"id":"3fa85f64-...","asset":"quench-01","signal":"quench_flow_lpm","alert_type":"threshold","severity":"warning","state":"OPEN","message":"quench_flow_lpm 152 below warning low 180"}
 ```
 
 **JavaScript usage**
