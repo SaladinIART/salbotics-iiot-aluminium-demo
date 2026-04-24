@@ -50,10 +50,13 @@ CREATE TABLE IF NOT EXISTS asset_metadata (
 
 INSERT INTO asset_metadata (asset, site, line_name, cell_name, asset_type, display_name)
 VALUES
-  ('feeder-01', 'demo-site', 'packaging-line-1', 'cell-a', 'feeder', 'Raw Material Feeder'),
-  ('mixer-01', 'demo-site', 'packaging-line-1', 'cell-a', 'mixer', 'Blend Mixer'),
-  ('conveyor-01', 'demo-site', 'packaging-line-1', 'cell-b', 'conveyor', 'Transfer Conveyor'),
-  ('packer-01', 'demo-site', 'packaging-line-1', 'cell-b', 'packer', 'Final Packer')
+  ('furnace-01',   'demo-site', 'aluminium-profile-line-1', 'extrusion-cell-a', 'furnace',   'Homogenisation Furnace'),
+  ('press-01',     'demo-site', 'aluminium-profile-line-1', 'extrusion-cell-a', 'press',     'Extrusion Press'),
+  ('quench-01',    'demo-site', 'aluminium-profile-line-1', 'extrusion-cell-a', 'quench',    'Water Quench'),
+  ('cooling-01',   'demo-site', 'aluminium-profile-line-1', 'extrusion-cell-a', 'cooling',   'Cooling Table'),
+  ('stretcher-01', 'demo-site', 'aluminium-profile-line-1', 'finishing-cell-b', 'stretcher', 'Profile Stretcher'),
+  ('saw-01',       'demo-site', 'aluminium-profile-line-1', 'finishing-cell-b', 'saw',       'Finish Saw'),
+  ('ageing-01',    'demo-site', 'aluminium-profile-line-1', 'finishing-cell-b', 'ageing',    'Ageing Oven')
 ON CONFLICT (asset) DO NOTHING;
 
 CREATE OR REPLACE VIEW telemetry_latest AS
@@ -90,7 +93,15 @@ ORDER BY asset, ts DESC;
 CREATE OR REPLACE VIEW production_kpis AS
 SELECT
   asset,
-  MAX(CASE WHEN signal IN ('produced_count', 'batch_count', 'items_transferred', 'packed_count') THEN value END) AS total_output,
+  MAX(CASE WHEN signal IN (
+    'billet_loaded_count',
+    'press_cycle_count',
+    'quenched_profile_count',
+    'cooled_profile_count',
+    'stretched_profile_count',
+    'cut_profile_count',
+    'aged_batch_count'
+  ) THEN value END) AS total_output,
   MAX(CASE WHEN state = 'FAULTED' THEN ts END) AS last_fault_ts,
   COUNT(*) FILTER (WHERE quality = 'bad') AS bad_quality_points
 FROM telemetry

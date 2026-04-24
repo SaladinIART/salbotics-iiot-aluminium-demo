@@ -17,6 +17,12 @@
 	$: assetId = $page.params.id;
 
 	onMount(async () => {
+		if (!assetId) {
+			error = 'Missing asset id.';
+			loading = false;
+			return;
+		}
+
 		try {
 			asset = await api.assets.get(assetId);
 			// Fetch distinct signals by loading a small sample
@@ -33,6 +39,11 @@
 	});
 
 	async function loadSignal() {
+		if (!assetId || !selectedSignal) {
+			points = [];
+			return;
+		}
+
 		points = await api.assets.telemetry(assetId, { signal: selectedSignal, limit: 300 });
 		// Chart expects ascending time order
 		points = [...points].reverse();

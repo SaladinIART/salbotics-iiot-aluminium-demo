@@ -7,280 +7,343 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 0,
-        "y": 0
-      },
       "id": 1,
+      "title": "Line Health",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "GREEN":    { "text": "GREEN",    "color": "green"  } } },
+            { "type": "value", "options": { "AMBER":    { "text": "AMBER",    "color": "yellow" } } },
+            { "type": "value", "options": { "RED":      { "text": "RED",      "color": "red"    } } },
+            { "type": "value", "options": { "CRITICAL": { "text": "CRITICAL", "color": "dark-red" } } }
+          ],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "gray", "value": null } ] }
+        }
+      },
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^line_health$/", "values": false }
       },
       "targets": [
         {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS healthy_assets FROM asset_status WHERE state = 'RUNNING' AND quality = 'good';",
+          "rawSql": "SELECT line_health FROM v_aluminium_line_current_state LIMIT 1;",
           "refId": "A"
         }
-      ],
-      "title": "Healthy Assets",
-      "type": "stat"
+      ]
     },
     {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 6,
-        "y": 0
-      },
       "id": 2,
+      "title": "Open P1 / P2 Alerts",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red",    "value": 3 }
+            ]
+          }
+        }
+      },
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
       },
       "targets": [
         {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "table",
-          "rawSql": "SELECT COUNT(*) AS faulted_assets FROM asset_status WHERE state = 'FAULTED';",
+          "rawSql": "SELECT COUNT(*) AS open_alerts FROM alerts WHERE state = 'OPEN' AND severity IN ('critical','warning');",
           "refId": "A"
         }
-      ],
-      "title": "Faulted Assets",
-      "type": "stat"
+      ]
     },
     {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 12,
-        "y": 0
-      },
       "id": 3,
+      "title": "Active Quality Holds",
+      "type": "stat",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green",  "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red",    "value": 2 }
+            ]
+          }
+        }
+      },
       "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
       },
       "targets": [
         {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "table",
-          "rawSql": "SELECT COALESCE(SUM(total_output), 0) AS line_output FROM production_kpis;",
+          "rawSql": "SELECT COUNT(*) AS batches_on_hold FROM batch_orders WHERE status = 'HOLD' OR (status = 'IN_PROGRESS' AND EXISTS (SELECT 1 FROM v_aluminium_quality_risk qr WHERE qr.batch_id = batch_orders.batch_id));",
           "refId": "A"
         }
-      ],
-      "title": "Line Output",
-      "type": "stat"
+      ]
     },
     {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 18,
-        "y": 0
-      },
       "id": 4,
-      "options": {
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT COUNT(*) AS recent_alarm_raises FROM events WHERE event_type = 'alarm_raised' AND ts > now() - interval '15 minutes';",
-          "refId": "A"
-        }
-      ],
-      "title": "Recent Alarm Raises",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 7
-      },
-      "id": 5,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT m.display_name AS asset, s.state, s.quality, s.fault_code, COALESCE(s.reason_code, 'NONE') AS reason, s.ts FROM asset_status s JOIN asset_metadata m ON m.asset = s.asset ORDER BY m.display_name;",
-          "refId": "A"
-        }
-      ],
-      "title": "Asset State Board",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 7
-      },
-      "id": 6,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
-        {
-          "format": "table",
-          "rawSql": "SELECT ts, asset, event_type, severity, message FROM events ORDER BY ts DESC LIMIT 12;",
-          "refId": "A"
-        }
-      ],
-      "title": "Alarm and Event Timeline",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
+      "title": "Hourly Profile Throughput (last 8h)",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 0 },
       "fieldConfig": {
         "defaults": {
+          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 60 },
+          "color": { "mode": "palette-classic" },
           "unit": "short"
-        },
-        "overrides": []
+        }
       },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 15
-      },
-      "id": 7,
+      "options": { "legend": { "displayMode": "hidden" } },
       "targets": [
         {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "time_series",
-          "rawSql": "SELECT ts AS time, value, asset || ' - ' || signal AS metric FROM telemetry WHERE signal IN ('temperature_c', 'pressure_bar', 'seal_temperature_c', 'line_rate_units_min', 'throughput_kg_min', 'speed_m_min') ORDER BY ts;",
+          "rawSql": "SELECT time_bucket('1 hour', ts) AS time, MAX(value) - LAG(MAX(value)) OVER (ORDER BY time_bucket('1 hour', ts)) AS profiles_per_hour FROM telemetry WHERE asset = 'ageing-01' AND signal = 'aged_batch_count' AND ts > NOW() - INTERVAL '8 hours' GROUP BY 1 ORDER BY 1;",
           "refId": "A"
         }
-      ],
-      "title": "Line Telemetry Trend",
-      "type": "timeseries"
+      ]
     },
     {
-      "datasource": {
-        "type": "postgres",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 8,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "show": false
+      "id": 5,
+      "title": "Decision Board — Recommended Actions",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 5 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left" }
         },
-        "showHeader": true
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "priority" },
+            "properties": [
+              { "id": "custom.width", "value": 70 },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "P1": { "text": "P1", "color": "red"    } } },
+                  { "type": "value", "options": { "P2": { "text": "P2", "color": "yellow" } } },
+                  { "type": "value", "options": { "P3": { "text": "P3", "color": "blue"   } } }
+                ]
+              },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "owner" },
+            "properties": [ { "id": "custom.width", "value": 140 } ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "action_text" },
+            "properties": [ { "id": "custom.width", "value": 600 } ]
+          }
+        ]
       },
+      "options": { "showHeader": true },
       "targets": [
         {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
           "format": "table",
-          "rawSql": "SELECT m.display_name AS asset, k.total_output, k.bad_quality_points, k.last_fault_ts FROM production_kpis k JOIN asset_metadata m ON m.asset = k.asset ORDER BY m.display_name;",
+          "rawSql": "SELECT priority, owner, action_text, affected_orders, evidence_signal FROM v_aluminium_decision_board;",
           "refId": "A"
         }
-      ],
-      "title": "Production and Downtime KPIs",
-      "type": "table"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Station Process Map — State Over Time",
+      "type": "state-timeline",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "RUNNING":     { "text": "RUNNING",     "color": "green"  } } },
+            { "type": "value", "options": { "STARTUP":     { "text": "STARTUP",     "color": "blue"   } } },
+            { "type": "value", "options": { "IDLE":        { "text": "IDLE",        "color": "gray"   } } },
+            { "type": "value", "options": { "FAULTED":     { "text": "FAULTED",     "color": "red"    } } },
+            { "type": "value", "options": { "MAINTENANCE": { "text": "MAINTENANCE", "color": "yellow" } } }
+          ],
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": { "mergeValues": true, "showValue": "auto", "rowHeight": 0.9, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, asset AS metric, state FROM telemetry WHERE signal = 'state_code' AND ts > NOW() - INTERVAL '30 minutes' ORDER BY ts;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Quality Risk — Batches in the Box",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 8, "w": 14, "x": 0, "y": 23 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "value_at_risk_myr" },
+            "properties": [
+              { "id": "unit", "value": "currencyMYR" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green",  "value": null },
+                    { "color": "yellow", "value": 10000 },
+                    { "color": "red",    "value": 50000 }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+          "format": "table",
+          "rawSql": "SELECT batch_id, customer, order_id, profile_count, risk_reason, value_at_risk_myr FROM v_aluminium_quality_risk;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Business Risk — Value at Risk by Customer",
+      "type": "table",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 23 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "left" }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "value_at_risk_myr" },
+            "properties": [
+              { "id": "unit", "value": "currencyMYR" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "gradient" } },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green",  "value": null },
+                    { "color": "yellow", "value": 20000 },
+                    { "color": "red",    "value": 80000 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "cost_so_far_myr" },
+            "properties": [ { "id": "unit", "value": "currencyMYR" } ]
+          }
+        ]
+      },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+          "format": "table",
+          "rawSql": "SELECT customer, orders_at_risk, value_at_risk_myr, cost_so_far_myr FROM v_aluminium_business_risk;",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Station Telemetry Trend — $station",
+      "type": "timeseries",
+      "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 31 },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+          "format": "time_series",
+          "rawSql": "SELECT ts AS time, signal AS metric, value FROM telemetry WHERE asset = '$station' AND ts > NOW() - INTERVAL '30 minutes' AND signal NOT IN ('state_code','fault_code') AND value IS NOT NULL ORDER BY ts;",
+          "refId": "A"
+        }
+      ]
     }
   ],
-  "schemaVersion": 40,
-  "style": "dark",
-  "tags": ["iiot", "telemetry", "operations"],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": ["aluminium", "decision-board", "nexus"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "name": "station",
+        "label": "Station",
+        "type": "query",
+        "datasource": { "type": "postgres", "uid": "iiot-timescaledb" },
+        "query": "SELECT asset FROM asset_metadata WHERE line_name = 'aluminium-profile-line-1' ORDER BY asset;",
+        "refresh": 1,
+        "current": { "text": "quench-01", "value": "quench-01" },
+        "includeAll": false,
+        "multi": false
+      }
+    ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-1h",
     "to": "now"
   },
-  "title": "IIoT Telemetry Overview",
-  "uid": "iiot-overview",
-  "version": 2
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "timezone": "Asia/Kuala_Lumpur",
+  "title": "Aluminium Profile Decision Board",
+  "uid": "nexus-aluminium-decision-board",
+  "version": 1,
+  "weekStart": ""
 }

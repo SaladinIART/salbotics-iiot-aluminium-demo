@@ -1,14 +1,14 @@
 {
-  "version": 2,
+  "version": 3,
   "site": "demo-site",
-  "line": "packaging-line-1",
-  "cell": "cell-a",
+  "line": "aluminium-profile-line-1",
+  "cell": "extrusion-cell-a",
   "assets": [
     {
-      "asset_id": "feeder-01",
-      "name": "Raw Material Feeder",
-      "asset_type": "feeder",
-      "cell": "cell-a",
+      "asset_id": "furnace-01",
+      "name": "Homogenisation Furnace",
+      "asset_type": "furnace",
+      "cell": "extrusion-cell-a",
       "unit_id": 1,
       "base_address": 0,
       "poll_interval_ms": 1000,
@@ -21,42 +21,37 @@
       },
       "fault_map": {
         "0": "NONE",
-        "101": "LOW_MATERIAL",
-        "102": "MOTOR_TRIP"
+        "111": "OVER_TEMPERATURE",
+        "112": "UNDER_TEMPERATURE",
+        "113": "BURNER_TRIP"
       },
       "signals": [
         {
-          "tag_id": "throughput_kg_min",
+          "tag_id": "billet_temp_c",
           "address_offset": 0,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
           "scale": 1.0,
           "offset": 0.0,
-          "unit": "kg/min",
+          "unit": "degC",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 75.0,
-            "warn_high": 118.0
-          }
+          "limits": {"warn_low": 540.0, "warn_high": 600.0}
         },
         {
-          "tag_id": "hopper_level_pct",
+          "tag_id": "preheat_zone_temp_c",
           "address_offset": 2,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
           "scale": 1.0,
           "offset": 0.0,
-          "unit": "%",
+          "unit": "degC",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 20.0,
-            "warn_high": 95.0
-          }
+          "limits": {"warn_low": 520.0, "warn_high": 580.0}
         },
         {
-          "tag_id": "produced_count",
+          "tag_id": "billet_loaded_count",
           "address_offset": 4,
           "word_count": 2,
           "datatype": "uint32",
@@ -91,10 +86,10 @@
       ]
     },
     {
-      "asset_id": "mixer-01",
-      "name": "Blend Mixer",
-      "asset_type": "mixer",
-      "cell": "cell-a",
+      "asset_id": "press-01",
+      "name": "Extrusion Press",
+      "asset_type": "press",
+      "cell": "extrusion-cell-a",
       "unit_id": 1,
       "base_address": 20,
       "poll_interval_ms": 1000,
@@ -107,13 +102,26 @@
       },
       "fault_map": {
         "0": "NONE",
-        "201": "HIGH_TEMPERATURE",
-        "202": "LOW_PRESSURE"
+        "211": "EXTRUSION_OVERLOAD",
+        "212": "BILLET_JAM",
+        "219": "PRESS_EMERGENCY_TRIP"
       },
       "signals": [
         {
-          "tag_id": "temperature_c",
+          "tag_id": "ram_force_kn",
           "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "kN",
+          "signal_class": "analog",
+          "limits": {"warn_low": 1500.0, "warn_high": 2400.0}
+        },
+        {
+          "tag_id": "exit_profile_temp_c",
+          "address_offset": 2,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
@@ -121,28 +129,10 @@
           "offset": 0.0,
           "unit": "degC",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 55.0,
-            "warn_high": 83.0
-          }
+          "limits": {"warn_low": 480.0, "warn_high": 530.0}
         },
         {
-          "tag_id": "pressure_bar",
-          "address_offset": 2,
-          "word_count": 2,
-          "datatype": "float32",
-          "endianness": "big",
-          "scale": 1.0,
-          "offset": 0.0,
-          "unit": "bar",
-          "signal_class": "analog",
-          "limits": {
-            "warn_low": 3.0,
-            "warn_high": 6.8
-          }
-        },
-        {
-          "tag_id": "batch_count",
+          "tag_id": "press_cycle_count",
           "address_offset": 4,
           "word_count": 2,
           "datatype": "uint32",
@@ -177,10 +167,10 @@
       ]
     },
     {
-      "asset_id": "conveyor-01",
-      "name": "Transfer Conveyor",
-      "asset_type": "conveyor",
-      "cell": "cell-b",
+      "asset_id": "quench-01",
+      "name": "Water Quench",
+      "asset_type": "quench",
+      "cell": "extrusion-cell-a",
       "unit_id": 1,
       "base_address": 40,
       "poll_interval_ms": 1000,
@@ -193,42 +183,36 @@
       },
       "fault_map": {
         "0": "NONE",
-        "301": "JAM_DETECTED",
-        "302": "SPEED_VARIANCE"
+        "311": "QUENCH_FLOW_LOW",
+        "312": "QUENCH_TEMP_HIGH"
       },
       "signals": [
         {
-          "tag_id": "speed_m_min",
+          "tag_id": "quench_flow_lpm",
           "address_offset": 0,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
           "scale": 1.0,
           "offset": 0.0,
-          "unit": "m/min",
+          "unit": "lpm",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 20.0,
-            "warn_high": 45.0
-          }
+          "limits": {"warn_low": 180.0, "warn_high": 260.0}
         },
         {
-          "tag_id": "vibration_mm_s",
+          "tag_id": "exit_temp_c",
           "address_offset": 2,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
           "scale": 1.0,
           "offset": 0.0,
-          "unit": "mm/s",
+          "unit": "degC",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 0.0,
-            "warn_high": 7.5
-          }
+          "limits": {"warn_low": 35.0, "warn_high": 80.0}
         },
         {
-          "tag_id": "items_transferred",
+          "tag_id": "quenched_profile_count",
           "address_offset": 4,
           "word_count": 2,
           "datatype": "uint32",
@@ -263,10 +247,10 @@
       ]
     },
     {
-      "asset_id": "packer-01",
-      "name": "Final Packer",
-      "asset_type": "packer",
-      "cell": "cell-b",
+      "asset_id": "cooling-01",
+      "name": "Cooling Table",
+      "asset_type": "cooling",
+      "cell": "extrusion-cell-a",
       "unit_id": 1,
       "base_address": 60,
       "poll_interval_ms": 1000,
@@ -279,12 +263,12 @@
       },
       "fault_map": {
         "0": "NONE",
-        "401": "FILM_BREAK",
-        "402": "SEAL_TEMP_LOW"
+        "411": "COOLING_TABLE_HOT",
+        "412": "COOLING_AIR_FLOW_LOW"
       },
       "signals": [
         {
-          "tag_id": "seal_temperature_c",
+          "tag_id": "table_temp_c",
           "address_offset": 0,
           "word_count": 2,
           "datatype": "float32",
@@ -293,28 +277,262 @@
           "offset": 0.0,
           "unit": "degC",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 165.0,
-            "warn_high": 196.0
-          }
+          "limits": {"warn_low": 40.0, "warn_high": 85.0}
         },
         {
-          "tag_id": "line_rate_units_min",
+          "tag_id": "conveyor_speed_m_min",
           "address_offset": 2,
           "word_count": 2,
           "datatype": "float32",
           "endianness": "big",
           "scale": 1.0,
           "offset": 0.0,
-          "unit": "units/min",
+          "unit": "m/min",
           "signal_class": "analog",
-          "limits": {
-            "warn_low": 45.0,
-            "warn_high": 78.0
-          }
+          "limits": {"warn_low": 4.0, "warn_high": 12.0}
         },
         {
-          "tag_id": "packed_count",
+          "tag_id": "cooled_profile_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
+    },
+    {
+      "asset_id": "stretcher-01",
+      "name": "Profile Stretcher",
+      "asset_type": "stretcher",
+      "cell": "finishing-cell-b",
+      "unit_id": 1,
+      "base_address": 80,
+      "poll_interval_ms": 1000,
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "511": "STRETCH_SLIP",
+        "512": "STRETCH_FORCE_HIGH"
+      },
+      "signals": [
+        {
+          "tag_id": "stretch_force_kn",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "kN",
+          "signal_class": "analog",
+          "limits": {"warn_low": 120.0, "warn_high": 240.0}
+        },
+        {
+          "tag_id": "stretch_pct",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "percent",
+          "signal_class": "analog",
+          "limits": {"warn_low": 0.8, "warn_high": 2.2}
+        },
+        {
+          "tag_id": "stretched_profile_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
+    },
+    {
+      "asset_id": "saw-01",
+      "name": "Finish Saw",
+      "asset_type": "saw",
+      "cell": "finishing-cell-b",
+      "unit_id": 1,
+      "base_address": 100,
+      "poll_interval_ms": 1000,
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "611": "BLADE_WEAR",
+        "612": "CUT_LENGTH_DEVIATION"
+      },
+      "signals": [
+        {
+          "tag_id": "blade_rpm",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "rpm",
+          "signal_class": "analog",
+          "limits": {"warn_low": 2400.0, "warn_high": 3200.0}
+        },
+        {
+          "tag_id": "cut_length_dev_mm",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "mm",
+          "signal_class": "analog",
+          "limits": {"warn_low": -5.0, "warn_high": 5.0}
+        },
+        {
+          "tag_id": "cut_profile_count",
+          "address_offset": 4,
+          "word_count": 2,
+          "datatype": "uint32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "count",
+          "signal_class": "counter"
+        },
+        {
+          "tag_id": "state_code",
+          "address_offset": 6,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "state"
+        },
+        {
+          "tag_id": "fault_code",
+          "address_offset": 7,
+          "word_count": 1,
+          "datatype": "uint16",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "code",
+          "signal_class": "fault"
+        }
+      ]
+    },
+    {
+      "asset_id": "ageing-01",
+      "name": "Ageing Oven",
+      "asset_type": "ageing",
+      "cell": "finishing-cell-b",
+      "unit_id": 1,
+      "base_address": 120,
+      "poll_interval_ms": 1000,
+      "state_map": {
+        "0": "IDLE",
+        "1": "STARTUP",
+        "2": "RUNNING",
+        "3": "FAULTED",
+        "4": "MAINTENANCE"
+      },
+      "fault_map": {
+        "0": "NONE",
+        "711": "AGE_TEMP_DEVIATION",
+        "712": "AGE_DWELL_SHORT"
+      },
+      "signals": [
+        {
+          "tag_id": "oven_temp_c",
+          "address_offset": 0,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "degC",
+          "signal_class": "analog",
+          "limits": {"warn_low": 170.0, "warn_high": 195.0}
+        },
+        {
+          "tag_id": "oven_dwell_min",
+          "address_offset": 2,
+          "word_count": 2,
+          "datatype": "float32",
+          "endianness": "big",
+          "scale": 1.0,
+          "offset": 0.0,
+          "unit": "min",
+          "signal_class": "analog",
+          "limits": {"warn_low": 460.0, "warn_high": 500.0}
+        },
+        {
+          "tag_id": "aged_batch_count",
           "address_offset": 4,
           "word_count": 2,
           "datatype": "uint32",

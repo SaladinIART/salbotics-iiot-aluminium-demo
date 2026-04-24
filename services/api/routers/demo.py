@@ -18,12 +18,19 @@ router = APIRouter(prefix="/api/v1/demo", tags=["demo"])
 
 _SIM_BASE = os.getenv("MODBUS_SIM_API", "http://modbus-sim:5001")
 
-_VALID_SCENARIOS = {"NORMAL", "QUALITY_HOLD", "LINE_FAULT", "EMERGENCY"}
+_VALID_SCENARIOS = {
+    "NORMAL",
+    "QUALITY_HOLD_QUENCH",
+    "PRESS_BOTTLENECK",
+    "STRETCHER_BACKLOG",
+    "AGEING_OVEN_DEVIATION",
+    "EMERGENCY_PRESS_TRIP",
+}
 
 
 @router.post("/scenario/{name}", dependencies=[Depends(require_api_key)])
 def set_demo_scenario(
-    name: Annotated[str, Path(description="Scenario name: NORMAL | QUALITY_HOLD | LINE_FAULT | EMERGENCY")],
+    name: Annotated[str, Path(description="Scenario name from aluminium-profile-line-1 catalog")],
 ) -> dict:
     name_upper = name.upper()
     if name_upper not in _VALID_SCENARIOS:

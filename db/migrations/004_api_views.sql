@@ -111,7 +111,15 @@ production AS (
     asset,
     MAX(value) AS total_output
   FROM window_data
-  WHERE signal IN ('produced_count', 'batch_count', 'items_transferred', 'packed_count')
+  WHERE signal IN (
+    'billet_loaded_count',
+    'press_cycle_count',
+    'quenched_profile_count',
+    'cooled_profile_count',
+    'stretched_profile_count',
+    'cut_profile_count',
+    'aged_batch_count'
+  )
   GROUP BY asset
 ),
 open_alerts AS (

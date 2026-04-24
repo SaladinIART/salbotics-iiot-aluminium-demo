@@ -50,7 +50,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-white">Executive Dashboard</h1>
-      <p class="text-sm text-gray-400">REL-2000 Assembly Line — Penang Plant 1</p>
+      <p class="text-sm text-gray-400">Aluminium Profile Line 1 — Penang Plant 1</p>
     </div>
     <div class="text-xs text-gray-500">
       Refreshes every 5s

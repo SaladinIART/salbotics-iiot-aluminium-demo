@@ -29,49 +29,81 @@ router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 # Where the modbus_sim scenario API lives (override via env var for local dev)
 _SIM_BASE = os.getenv("MODBUS_SIM_API", "http://modbus-sim:5001")
 
-# MTTR estimates per fault code (minutes) — informed by maintenance_log history
+# MTTR estimates per fault code (minutes) — informed by maintenance_log history.
+# Keys match fault_map values in contracts/register_map.json.
 _MTTR_MAP = {
-    101: 20,   # feeder LOW_MATERIAL — refill hopper
-    102: 240,  # feeder MOTOR_TRIP — motor inspection, possible replacement
-    201: 90,   # mixer HIGH_TEMP — cooling loop flush / fan replacement
-    202: 60,   # mixer LOW_PRESSURE — regulator check/replacement
-    301: 45,   # conveyor JAM — clear jam + restart test
-    302: 60,   # conveyor SPEED_VARIANCE — encoder/tensioner check
-    401: 15,   # packer FILM_BREAK — roll replacement
-    402: 90,   # packer SEAL_TEMP_LOW — heating element / thermostat
+    111: 60,   # furnace OVER_TEMPERATURE    — recalibrate zone thermocouples
+    112: 45,   # furnace UNDER_TEMPERATURE   — recover setpoint
+    113: 240,  # furnace BURNER_TRIP         — igniter/burner inspection
+    211: 120,  # press EXTRUSION_OVERLOAD    — die inspection / regrind
+    212: 60,   # press BILLET_JAM            — clear + alignment check
+    219: 300,  # press EMERGENCY_TRIP        — full safety interlock cycle
+    311: 30,   # quench QUENCH_FLOW_LOW      — strainer / nozzle clean
+    312: 45,   # quench QUENCH_TEMP_HIGH     — chiller coil check
+    411: 30,   # cooling TABLE_HOT           — clear blocked air intake
+    412: 45,   # cooling AIR_FLOW_LOW        — filter replace
+    511: 30,   # stretcher SLIP              — jaw reface
+    512: 60,   # stretcher FORCE_HIGH        — load cell recal
+    611: 45,   # saw BLADE_WEAR              — blade change
+    612: 30,   # saw CUT_LENGTH_DEVIATION    — encoder/gauge calibration
+    711: 90,   # ageing AGE_TEMP_DEVIATION   — heater element / circulation
+    712: 60,   # ageing AGE_DWELL_SHORT      — door seal / dwell timer
 }
 
-_RECOMMENDED_ACTIONS: dict[str, list[dict]] = {
+# Mapped from decision_board_rules.owner → RecommendedAction.owner (normalised uppercase enum)
+_OWNER_TO_ENUM = {
+    "Plant Manager":     "MANAGEMENT",
+    "Shift Supervisor":  "MANAGEMENT",
+    "Quality":           "PRODUCTION",
+    "Maintenance":       "MAINTENANCE",
+    "Operator":          "PRODUCTION",
+    "Logistics":         "LOGISTICS",
+}
+
+# Priority (P1/P2/P3) → urgency enum expected by RecommendedAction schema
+_PRIORITY_TO_URGENCY = {
+    "P1": "IMMEDIATE",
+    "P2": "URGENT",
+    "P3": "SOON",
+}
+
+# Python fallback used only when the SQL decision view returns zero rows (e.g. DB hiccup
+# or a scenario name that hasn't been seeded yet). Keeps the schema valid.
+_FALLBACK_ACTIONS: dict[str, list[dict]] = {
     "NORMAL": [
-        {"urgency": "INFO", "owner": "MANAGEMENT", "action": "All systems nominal. No action required."},
+        {"urgency": "INFO", "owner": "MANAGEMENT",
+         "action": "All systems nominal — continue planned production run."},
     ],
-    "QUALITY_HOLD": [
-        {"urgency": "URGENT",    "owner": "MAINTENANCE",  "action": "Inspect reflow oven cooling loop — schedule PM within 4 hours"},
-        {"urgency": "URGENT",    "owner": "PRODUCTION",   "action": "Place Batch #2024-034 (85 units) on quality hold for re-inspection"},
-        {"urgency": "SOON",      "owner": "LOGISTICS",    "action": "Notify Intel Penang: PO-2024-089 may slip 2 hours — confirm acceptance"},
-        {"urgency": "SOON",      "owner": "MANAGEMENT",   "action": "Approve quality inspection (3 hr) — no customer impact if approved now"},
+    "QUALITY_HOLD_QUENCH": [
+        {"urgency": "URGENT", "owner": "PRODUCTION",
+         "action": "Quench flow anomaly — check Decision Board in Grafana."},
     ],
-    "LINE_FAULT": [
-        {"urgency": "IMMEDIATE", "owner": "MANAGEMENT",   "action": "Approve RM 450 expedite courier for PO-2024-089 — decision needed within 20 min"},
-        {"urgency": "IMMEDIATE", "owner": "MAINTENANCE",  "action": "Dispatch technician — conveyor jam clearance ETA 30 min, then packer film roll"},
-        {"urgency": "URGENT",    "owner": "LOGISTICS",    "action": "Book expedite courier before 14:00 cut-off to save Intel Penang delivery"},
-        {"urgency": "URGENT",    "owner": "PRODUCTION",   "action": "Pre-stage PO-2024-089 units for priority packing on line restart"},
+    "PRESS_BOTTLENECK": [
+        {"urgency": "IMMEDIATE", "owner": "MAINTENANCE",
+         "action": "Press overload — dispatch maintenance, check Decision Board."},
     ],
-    "EMERGENCY": [
-        {"urgency": "IMMEDIATE", "owner": "MANAGEMENT",   "action": "Invoke BCP — approve CM transfer to Contract Manufacturer B (RM 8,500 premium)"},
-        {"urgency": "IMMEDIATE", "owner": "MANAGEMENT",   "action": "Approve air freight for Intel Penang (RM 12,000) — saves RM 50,000 penalty"},
-        {"urgency": "IMMEDIATE", "owner": "MANAGEMENT",   "action": "Call Intel Penang, Bosch Malaysia, Siemens Penang account managers NOW"},
-        {"urgency": "IMMEDIATE", "owner": "MAINTENANCE",  "action": "EHS area isolation required before any technician entry — raise emergency motor PO"},
-        {"urgency": "URGENT",    "owner": "LOGISTICS",    "action": "Complete CM transfer form — requires Plant Manager signature"},
-        {"urgency": "URGENT",    "owner": "PRODUCTION",   "action": "Freeze all non-emergency production orders pending BCP activation"},
+    "STRETCHER_BACKLOG": [
+        {"urgency": "URGENT", "owner": "MAINTENANCE",
+         "action": "Stretcher offline — check Decision Board in Grafana."},
+    ],
+    "AGEING_OVEN_DEVIATION": [
+        {"urgency": "URGENT", "owner": "PRODUCTION",
+         "action": "Ageing oven out of spec — check Decision Board in Grafana."},
+    ],
+    "EMERGENCY_PRESS_TRIP": [
+        {"urgency": "IMMEDIATE", "owner": "MANAGEMENT",
+         "action": "Press emergency trip — invoke BCP immediately."},
     ],
 }
 
 _ASSET_ICONS = {
-    "feeder":   "component_feeder",
-    "mixer":    "reflow_oven",
-    "conveyor": "aoi_conveyor",
-    "packer":   "test_pack",
+    "furnace":   "homogenisation_furnace",
+    "press":     "extrusion_press",
+    "quench":    "water_quench",
+    "cooling":   "cooling_table",
+    "stretcher": "profile_stretcher",
+    "saw":       "finish_saw",
+    "ageing":    "ageing_oven",
 }
 
 _ASSET_SQL = """
@@ -99,14 +131,20 @@ FROM v_order_risk
 ORDER BY due_at
 """
 
-_PACKED_TODAY_SQL = """
+_PROFILES_SHIPPED_TODAY_SQL = """
 SELECT COALESCE(
     MAX(value::bigint) - MIN(value::bigint), 0
-) AS packed_today
+) AS profiles_shipped_today
 FROM telemetry
-WHERE asset = 'packer-01'
-  AND signal = 'packed_count'
+WHERE asset = 'ageing-01'
+  AND signal = 'aged_batch_count'
   AND ts >= date_trunc('day', NOW() AT TIME ZONE 'Asia/Kuala_Lumpur') AT TIME ZONE 'Asia/Kuala_Lumpur'
+"""
+
+_DECISION_BOARD_SQL = """
+SELECT priority, owner, action_text
+FROM v_aluminium_decision_board
+LIMIT 6
 """
 
 _SCHEDULE_SQL = """
@@ -143,10 +181,14 @@ def get_dashboard(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> Das
         order_rows = cur.fetchall()
 
         # Production
-        cur.execute(_PACKED_TODAY_SQL)
-        packed_row = cur.fetchone()
+        cur.execute(_PROFILES_SHIPPED_TODAY_SQL)
+        shipped_row = cur.fetchone()
         cur.execute(_SCHEDULE_SQL)
         schedule_row = cur.fetchone()
+
+        # Decision board (single source of truth — same view Grafana reads)
+        cur.execute(_DECISION_BOARD_SQL)
+        decision_rows = cur.fetchall()
 
     # ── Financial ──────────────────────────────────────────────────────────────
     total_cost_rate = sum(float(r["cost_rate_myr_hr"] or 0) for r in asset_rows)
@@ -162,14 +204,24 @@ def get_dashboard(conn: Annotated[psycopg.Connection, Depends(get_conn)]) -> Das
         orders_at_risk_value_myr=round(at_risk_value, 2),
     )
 
-    # ── Recommended actions ────────────────────────────────────────────────────
-    actions_raw = _RECOMMENDED_ACTIONS.get(scenario, _RECOMMENDED_ACTIONS["NORMAL"])
-    recommended_actions = [RecommendedAction(**a) for a in actions_raw]
+    # ── Recommended actions (SQL-first, Python fallback) ──────────────────────
+    if decision_rows:
+        recommended_actions = [
+            RecommendedAction(
+                urgency=_PRIORITY_TO_URGENCY.get(row["priority"], "SOON"),
+                owner=_OWNER_TO_ENUM.get(row["owner"], "MANAGEMENT"),
+                action=row["action_text"],
+            )
+            for row in decision_rows
+        ]
+    else:
+        fallback = _FALLBACK_ACTIONS.get(scenario, _FALLBACK_ACTIONS["NORMAL"])
+        recommended_actions = [RecommendedAction(**a) for a in fallback]
 
     # ── Production ────────────────────────────────────────────────────────────
     faulted = [r for r in asset_rows if r["state"] in ("FAULTED", "MAINTENANCE")]
-    units_today = int(packed_row["packed_today"]) if packed_row else 0
-    target_today = int(schedule_row["target_units"]) if schedule_row else 850
+    units_today = int(shipped_row["profiles_shipped_today"]) if shipped_row else 0
+    target_today = int(schedule_row["target_units"]) if schedule_row else 320
 
     # Rough throughput estimate: if any machine faulted → proportional reduction
     running_count = sum(1 for r in asset_rows if r["state"] == "RUNNING")

@@ -12,31 +12,51 @@
   const SCENARIOS = [
     {
       name: 'NORMAL',
-      label: '🟢 Normal',
-      description: 'All machines running. Production on target.',
+      label: 'Normal',
+      description: 'All 7 stations running. Profile throughput on target.',
       cls: 'border-green-600 hover:bg-green-900/40',
       active: 'bg-green-800/60 border-green-400 ring-2 ring-green-500',
+      flagship: false,
     },
     {
-      name: 'QUALITY_HOLD',
-      label: '🟡 Quality Hold',
-      description: 'Reflow oven temperature drift. 1 batch on hold.',
+      name: 'QUALITY_HOLD_QUENCH',
+      label: 'Quality Hold — Quench',
+      description: 'Quench flow drops + exit temp rises. Automotive Customer B batch on P2 hold.',
       cls: 'border-amber-600 hover:bg-amber-900/30',
       active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      flagship: true,
     },
     {
-      name: 'LINE_FAULT',
-      label: '🔴 Line Fault',
-      description: 'Conveyor jam + film break. Production stopped.',
-      cls: 'border-red-600 hover:bg-red-900/30',
-      active: 'bg-red-900/60 border-red-400 ring-2 ring-red-500',
+      name: 'PRESS_BOTTLENECK',
+      label: 'Press Bottleneck',
+      description: 'Extrusion overload. Downstream starved, all 3 orders exposed.',
+      cls: 'border-amber-600 hover:bg-amber-900/30',
+      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      flagship: false,
     },
     {
-      name: 'EMERGENCY',
-      label: '⛔ Emergency',
-      description: 'Full line shutdown. All orders at risk.',
+      name: 'STRETCHER_BACKLOG',
+      label: 'Stretcher Backlog',
+      description: 'Stretcher offline for grip change. WIP accumulating on cooling table.',
+      cls: 'border-amber-600 hover:bg-amber-900/30',
+      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      flagship: false,
+    },
+    {
+      name: 'AGEING_OVEN_DEVIATION',
+      label: 'Ageing Oven Deviation',
+      description: 'Oven out of T6 band. MNC Customer A batch suspect — retest required.',
+      cls: 'border-amber-600 hover:bg-amber-900/30',
+      active: 'bg-amber-800/60 border-amber-400 ring-2 ring-amber-500',
+      flagship: false,
+    },
+    {
+      name: 'EMERGENCY_PRESS_TRIP',
+      label: 'Emergency Press Trip',
+      description: 'Line down. All 3 customer orders at risk. Invoke BCP.',
       cls: 'border-red-900 hover:bg-red-950/40',
       active: 'bg-red-950/70 border-red-300 ring-2 ring-red-400',
+      flagship: false,
     },
   ] as const;
 
@@ -62,15 +82,21 @@
     <div class="text-xs text-gray-500 italic">For presentation use only</div>
   </div>
 
-  <div class="grid grid-cols-4 gap-2">
+  <div class="grid grid-cols-3 gap-2">
     {#each SCENARIOS as scenario}
       <button
         on:click={() => trigger(scenario.name)}
         disabled={loading}
         class="border rounded-lg p-3 text-left transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-          {currentScenario === scenario.name ? scenario.active : 'border-opacity-60 ' + scenario.cls}"
+          {currentScenario === scenario.name ? scenario.active : 'border-opacity-60 ' + scenario.cls}
+          {scenario.flagship ? 'ring-1 ring-amber-300/60' : ''}"
       >
-        <div class="font-semibold text-sm text-white mb-1">{scenario.label}</div>
+        <div class="flex items-center justify-between mb-1">
+          <div class="font-semibold text-sm text-white">{scenario.label}</div>
+          {#if scenario.flagship}
+            <span class="text-[10px] uppercase tracking-wider text-amber-300 font-bold">Flagship</span>
+          {/if}
+        </div>
         <div class="text-xs text-gray-400 leading-tight">{scenario.description}</div>
       </button>
     {/each}

@@ -115,7 +115,7 @@ export interface AssetDashboard {
 }
 
 export interface DashboardResponse {
-	scenario: 'NORMAL' | 'QUALITY_HOLD' | 'LINE_FAULT' | 'EMERGENCY';
+	scenario: string;
 	health: 'GREEN' | 'AMBER' | 'RED' | 'CRITICAL';
 	health_message: string;
 	financial: FinancialSummary;

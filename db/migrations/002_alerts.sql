@@ -22,21 +22,18 @@ CREATE TABLE IF NOT EXISTS alert_rules (
   UNIQUE (asset, signal)
 );
 
--- Seed default rules for the 4 demo assets (matches register_map.json ranges)
+-- Seed default rules for the 7 aluminium-profile-line-1 stations
+-- (matches register_map.json warn bands; 006 re-seeds with more detail).
 INSERT INTO alert_rules (asset, signal, warn_low, warn_high, crit_low, crit_high)
 VALUES
-  -- Feeder: monitor feed_rate and motor_temp
-  ('feeder-01',   'feed_rate',    2.0,   NULL,  1.0,  NULL),
-  ('feeder-01',   'motor_temp',   NULL,  75.0,  NULL, 90.0),
-  -- Mixer: monitor rpm and torque
-  ('mixer-01',    'rpm',          10.0,  NULL,  5.0,  NULL),
-  ('mixer-01',    'torque_pct',   NULL,  85.0,  NULL, 95.0),
-  -- Conveyor: monitor belt_speed and vibration
-  ('conveyor-01', 'belt_speed',   0.2,   NULL,  0.1,  NULL),
-  ('conveyor-01', 'vibration',    NULL,  6.0,   NULL, 9.0),
-  -- Packer: monitor cycle_time and reject_count
-  ('packer-01',   'cycle_time',   NULL,  5.0,   NULL, 8.0),
-  ('packer-01',   'reject_count', NULL,  10.0,  NULL, 20.0)
+  ('furnace-01',   'billet_temp_c',         540.0,  600.0,  520.0,  620.0),
+  ('press-01',     'ram_force_kn',         1500.0, 2400.0, 1300.0, 2550.0),
+  ('quench-01',    'quench_flow_lpm',       180.0,  260.0,  150.0,  300.0),
+  ('quench-01',    'exit_temp_c',            35.0,   80.0,   30.0,   95.0),
+  ('cooling-01',   'table_temp_c',           40.0,   85.0,   30.0,   95.0),
+  ('stretcher-01', 'stretch_pct',             0.8,    2.2,    0.5,    2.6),
+  ('saw-01',       'cut_length_dev_mm',      -5.0,    5.0,   -8.0,    8.0),
+  ('ageing-01',    'oven_temp_c',           170.0,  195.0,  165.0,  205.0)
 ON CONFLICT (asset, signal) DO NOTHING;
 
 -- ─── ALERTS ──────────────────────────────────────────────────────────────────

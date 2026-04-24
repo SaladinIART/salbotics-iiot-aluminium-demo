@@ -19,7 +19,7 @@ class FinancialSummary(BaseModel):
 
 class ProductionStatus(BaseModel):
     throughput_pct: float         # 0–100 (% of target line_rate running)
-    units_today: int              # packed_count from packer-01 since shift start
+    units_today: int              # aged_batch_count from ageing-01 since shift start (end-of-line T6 completion proxy)
     target_today: int             # from production_schedule
     faulted_machine_count: int
 
@@ -63,7 +63,7 @@ class AssetSummaryForDashboard(BaseModel):
 
 
 class DashboardResponse(BaseModel):
-    scenario: str                 # NORMAL | QUALITY_HOLD | LINE_FAULT | EMERGENCY
+    scenario: str                 # NORMAL | QUALITY_HOLD_QUENCH | PRESS_BOTTLENECK | STRETCHER_BACKLOG | AGEING_OVEN_DEVIATION | EMERGENCY_PRESS_TRIP
     health: str                   # GREEN | AMBER | RED | CRITICAL
     health_message: str
     financial: FinancialSummary

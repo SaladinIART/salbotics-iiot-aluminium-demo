@@ -3,14 +3,25 @@
 
   export let assets: AssetDashboard[] = [];
 
-  // Ordered display sequence: left to right on the line
-  const ORDER = ['feeder-01', 'mixer-01', 'conveyor-01', 'packer-01'];
+  // Ordered display sequence: left to right along the aluminium extrusion + finishing line
+  const ORDER = [
+    'furnace-01',
+    'press-01',
+    'quench-01',
+    'cooling-01',
+    'stretcher-01',
+    'saw-01',
+    'ageing-01',
+  ];
 
   const ICONS: Record<string, string> = {
-    feeder:   '📦',
-    mixer:    '🔥',
-    conveyor: '➡',
-    packer:   '✅',
+    furnace:   '🏭',
+    press:     '🔩',
+    quench:    '💧',
+    cooling:   '🌬️',
+    stretcher: '📏',
+    saw:       '🪚',
+    ageing:    '🌡️',
   };
 
   const STATE_BG: Record<string, string> = {
@@ -33,14 +44,22 @@
 
   const FAULT_LABELS: Record<number, string> = {
     0:   '',
-    101: 'LOW MATERIAL',
-    102: 'MOTOR TRIP',
-    201: 'HIGH TEMP',
-    202: 'LOW PRESSURE',
-    301: 'JAM DETECTED',
-    302: 'SPEED VARIANCE',
-    401: 'FILM BREAK',
-    402: 'SEAL TEMP LOW',
+    111: 'OVER TEMP',
+    112: 'UNDER TEMP',
+    113: 'BURNER TRIP',
+    211: 'EXTRUSION OVERLOAD',
+    212: 'BILLET JAM',
+    219: 'EMERGENCY TRIP',
+    311: 'QUENCH FLOW LOW',
+    312: 'QUENCH TEMP HIGH',
+    411: 'COOLING TABLE HOT',
+    412: 'AIR FLOW LOW',
+    511: 'STRETCH SLIP',
+    512: 'STRETCH FORCE HIGH',
+    611: 'BLADE WEAR',
+    612: 'CUT LENGTH DEV',
+    711: 'AGE TEMP DEVIATION',
+    712: 'AGE DWELL SHORT',
   };
 
   $: ordered = ORDER.map(id => assets.find(a => a.asset === id)).filter(Boolean) as AssetDashboard[];
@@ -48,7 +67,7 @@
 
 <div class="bg-gray-800 border border-gray-700 rounded-lg p-5">
   <div class="text-xs uppercase tracking-widest text-gray-400 mb-4 font-bold">
-    REL-2000 Assembly Line — Live Floor View
+    Aluminium Profile Line 1 — Live Floor View
   </div>
 
   <div class="flex items-center gap-0 overflow-x-auto">

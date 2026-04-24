@@ -1,24 +1,19 @@
--- Migration 005: Business Context
--- Adds production orders, cost config, maintenance history, and business-impact views.
--- Asset display names are updated to reflect the REL-2000 relay module assembly line.
--- MTBF values derived from AI4I 2020 Predictive Maintenance Dataset (UCI ML Repository).
--- Cost rates based on Penang SMT line industry benchmarks (2024).
+-- Migration 005: Business Context — Aluminium Profile Line 1
+-- Adds production orders, cost config, maintenance history, and business-impact views
+-- for the aluminium extrusion demo. Customer names are sanitized archetypes.
 
--- ─── 1. Update asset display names ───────────────────────────────────────────
+-- ─── 1. Site display name ────────────────────────────────────────────────────
 
-UPDATE asset_metadata SET display_name = 'Component Feeder'          WHERE asset = 'feeder-01';
-UPDATE asset_metadata SET display_name = 'Reflow Oven'               WHERE asset = 'mixer-01';
-UPDATE asset_metadata SET display_name = 'AOI Transfer Conveyor'     WHERE asset = 'conveyor-01';
-UPDATE asset_metadata SET display_name = 'Test & Pack Station'       WHERE asset = 'packer-01';
-UPDATE asset_metadata SET line_name    = 'rel2000-assembly-line-1'   WHERE asset IN ('feeder-01','mixer-01','conveyor-01','packer-01');
-UPDATE sites SET display_name = 'Penang Plant 1 — REL-2000 Line' WHERE site_id = 'demo-site';
+UPDATE sites
+SET display_name = 'Penang Plant 1 — Aluminium Profile Line 1'
+WHERE site_id = 'demo-site';
 
 -- ─── 2. production_orders ─────────────────────────────────────────────────────
 
 CREATE TABLE IF NOT EXISTS production_orders (
     id               TEXT        PRIMARY KEY,
     customer         TEXT        NOT NULL,
-    product          TEXT        NOT NULL DEFAULT 'REL-2000 Industrial Relay Module',
+    product          TEXT        NOT NULL,
     quantity_ordered  INTEGER     NOT NULL,
     quantity_produced INTEGER     NOT NULL DEFAULT 0,
     due_at           TIMESTAMPTZ NOT NULL,
@@ -28,10 +23,10 @@ CREATE TABLE IF NOT EXISTS production_orders (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO production_orders (id, customer, quantity_ordered, due_at, status, unit_revenue_myr) VALUES
-    ('PO-2024-089', 'Intel Penang',      500, NOW() + INTERVAL '1 day 5 hours',  'ON_TRACK', 125.00),
-    ('PO-2024-091', 'Bosch Malaysia',    300, NOW() + INTERVAL '3 days',          'ON_TRACK', 125.00),
-    ('PO-2024-093', 'Siemens Penang',    200, NOW() + INTERVAL '5 days',          'ON_TRACK', 125.00)
+INSERT INTO production_orders (id, customer, product, quantity_ordered, due_at, status, unit_revenue_myr) VALUES
+    ('PO-AL-2024-0018', 'MNC Customer A',             '6063-T6 Heatsink Profile 120mm',         2000, NOW() + INTERVAL '2 days',   'ON_TRACK', 42.00),
+    ('PO-AL-2024-0021', 'Automotive Customer B',      '6082-T6 Bumper Reinforcement 1800mm',     800, NOW() + INTERVAL '28 hours', 'ON_TRACK', 95.00),
+    ('PO-AL-2024-0025', 'Building Systems Customer C','6063-T5 Window Frame Mullion 2400mm',    1500, NOW() + INTERVAL '5 days',   'ON_TRACK', 58.00)
 ON CONFLICT (id) DO NOTHING;
 
 -- ─── 3. cost_config ──────────────────────────────────────────────────────────
@@ -46,19 +41,19 @@ CREATE TABLE IF NOT EXISTS cost_config (
 );
 
 INSERT INTO cost_config (asset, cost_idle_myr_hr, cost_fault_myr_hr, note) VALUES
-    ('feeder-01',   85.00,  170.00, 'Component loading — medium criticality'),
-    ('mixer-01',   120.00,  240.00, 'Reflow oven — line bottleneck, highest criticality'),
-    ('conveyor-01', 95.00,  190.00, 'AOI conveyor — high throughput dependency'),
-    ('packer-01',  110.00,  220.00, 'Test & Pack — end-of-line, affects shipment readiness')
+    ('furnace-01',   140.00, 280.00, 'Homogenisation furnace — high energy, long preheat if cold'),
+    ('press-01',     220.00, 440.00, 'Extrusion press — line bottleneck, highest criticality'),
+    ('quench-01',    130.00, 260.00, 'Water quench — T5/T6 temper gatekeeper, quality-critical'),
+    ('cooling-01',   100.00, 200.00, 'Cooling table — WIP staging, backs up finishing cell'),
+    ('stretcher-01', 120.00, 240.00, 'Stretcher — corrects bow/twist, required before saw'),
+    ('saw-01',       100.00, 200.00, 'Cut-to-length saw — blade wear drives dimensional drift'),
+    ('ageing-01',    160.00, 320.00, 'Ageing oven — T6 temper completion, shipment gate')
 ON CONFLICT (asset) DO NOTHING;
 
 -- ─── 4. maintenance_log ───────────────────────────────────────────────────────
--- Seeded with 12 months of history per asset.
--- MTBF derivation from AI4I 2020 failure rates:
---   - Reflow Oven (mixer): ~6.5 weeks (HIGH_TEMP failures at 9.6% rate in AI4I dataset)
---   - Conveyor:            ~4.5 weeks (tool-wear & OSF patterns)
---   - Packer:              ~5.5 weeks (PWF process failure patterns)
---   - Feeder:              ~16 weeks  (low failure rate, motor-trip rare)
+-- 12 months of history per station with anonymised technician initials.
+-- MTBF targets: press ~5wk, saw ~4wk (blade wear), stretcher ~6wk, quench ~8wk,
+--               furnace ~10wk, ageing ~10wk, cooling ~12wk.
 
 CREATE TABLE IF NOT EXISTS maintenance_log (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,62 +68,76 @@ CREATE TABLE IF NOT EXISTS maintenance_log (
 );
 
 INSERT INTO maintenance_log (asset, maint_type, description, technician, started_at, completed_at, cost_myr, parts_replaced) VALUES
--- feeder-01 (~16-week MTBF → ~3 events in 12 months)
-('feeder-01', 'SCHEDULED', 'Quarterly PM — motor brushes & hopper sensor calibration', 'Hafiz R.',   NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '2 hours',  450.00, 'Motor brush set'),
-('feeder-01', 'UNPLANNED', 'Motor trip — overload detected, reset and restarted',       'Azri M.',    NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months' + INTERVAL '40 minutes', 280.00, NULL),
-('feeder-01', 'SCHEDULED', 'Semi-annual PM — belt tension, hopper level sensor check',  'Hafiz R.',   NOW() - INTERVAL '4 months',  NOW() - INTERVAL '4 months' + INTERVAL '3 hours',  550.00, 'Hopper sensor'),
+-- furnace-01 (~10-week MTBF)
+('furnace-01',   'SCHEDULED', 'Quarterly PM — thermocouple calibration, burner inspection',          'Tech-A', NOW() - INTERVAL '11 months', NOW() - INTERVAL '11 months' + INTERVAL '4 hours',   820.00, 'Thermocouple Type-K (x4)'),
+('furnace-01',   'UNPLANNED', 'OVER_TEMPERATURE event — zone-2 thermocouple drift, replaced',        'Tech-B', NOW() - INTERVAL '7 months',  NOW() - INTERVAL '7 months'  + INTERVAL '2 hours',   420.00, 'Thermocouple zone-2'),
+('furnace-01',   'SCHEDULED', 'Semi-annual PM — refractory lining inspection, burner nozzle clean',  'Tech-A', NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months'  + INTERVAL '6 hours',  1150.00, 'Burner nozzle set'),
+('furnace-01',   'UNPLANNED', 'Burner trip — igniter fault, recalibrated and rebedded',              'Tech-C', NOW() - INTERVAL '7 weeks',   NOW() - INTERVAL '7 weeks'   + INTERVAL '3 hours',   580.00, 'Igniter module'),
 
--- mixer-01 / Reflow Oven (~6.5-week MTBF → ~8 events in 12 months)
-('mixer-01',  'UNPLANNED', 'HIGH_TEMP fault — cooling loop blockage cleared',           'Syafiq K.',  NOW() - INTERVAL '11 months', NOW() - INTERVAL '11 months' + INTERVAL '1.5 hours', 380.00, 'Coolant filter'),
-('mixer-01',  'SCHEDULED', 'Quarterly PM — thermocouple calibration, cooling loop flush','Hafiz R.',  NOW() - INTERVAL '9 months',  NOW() - INTERVAL '9 months' + INTERVAL '4 hours',   720.00, 'Thermocouple Type-K'),
-('mixer-01',  'UNPLANNED', 'HIGH_TEMP fault — cooling fan seized, replaced',            'Azri M.',    NOW() - INTERVAL '7 months',  NOW() - INTERVAL '7 months' + INTERVAL '2.5 hours', 650.00, 'Cooling fan 24VDC'),
-('mixer-01',  'UNPLANNED', 'Pressure low — nitrogen supply regulator replaced',         'Syafiq K.',  NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months' + INTERVAL '1 hours',   420.00, 'N2 regulator'),
-('mixer-01',  'SCHEDULED', 'Quarterly PM — full oven profile validation & calibration', 'Hafiz R.',   NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months' + INTERVAL '5 hours',   890.00, 'Zone thermocouple (x3)'),
-('mixer-01',  'UNPLANNED', 'Cooling loop partial blockage — flushed with solvent',      'Azri M.',    NOW() - INTERVAL '6 weeks',   NOW() - INTERVAL '6 weeks' + INTERVAL '45 minutes',  180.00, NULL),
-('mixer-01',  'UNPLANNED', 'HIGH_TEMP fault — cooling loop degrading again',            'Syafiq K.',  NOW() - INTERVAL '2 weeks',   NOW() - INTERVAL '2 weeks' + INTERVAL '1.5 hours',  380.00, 'Coolant filter'),
+-- press-01 (~5-week MTBF — the heart of the line)
+('press-01',     'UNPLANNED', 'EXTRUSION_OVERLOAD — die wear causing pressure spike, die reground',  'Tech-B', NOW() - INTERVAL '11 months', NOW() - INTERVAL '11 months' + INTERVAL '5 hours',  1800.00, 'Die set (regrind)'),
+('press-01',     'SCHEDULED', 'Quarterly PM — ram seal + hydraulic filter change',                   'Tech-A', NOW() - INTERVAL '9 months',  NOW() - INTERVAL '9 months'  + INTERVAL '6 hours',  2100.00, 'Hydraulic filter, ram seal kit'),
+('press-01',     'UNPLANNED', 'Billet jam — cleared, shear alignment adjusted',                      'Tech-C', NOW() - INTERVAL '8 months',  NOW() - INTERVAL '8 months'  + INTERVAL '1.5 hours', 340.00, NULL),
+('press-01',     'UNPLANNED', 'EXTRUSION_OVERLOAD — die back-end taper worn out of spec',            'Tech-B', NOW() - INTERVAL '6 months',  NOW() - INTERVAL '6 months'  + INTERVAL '4 hours',  1900.00, 'Die set (new)'),
+('press-01',     'SCHEDULED', 'Quarterly PM — load cell calibration, platen alignment check',        'Tech-A', NOW() - INTERVAL '4 months',  NOW() - INTERVAL '4 months'  + INTERVAL '5 hours',  1450.00, 'Load cell re-cert'),
+('press-01',     'UNPLANNED', 'Ram force variance — hydraulic pressure transducer replaced',         'Tech-C', NOW() - INTERVAL '7 weeks',   NOW() - INTERVAL '7 weeks'   + INTERVAL '2 hours',   680.00, 'Pressure transducer'),
+('press-01',     'UNPLANNED', 'BILLET_JAM — carrier alignment, cleared',                             'Tech-B', NOW() - INTERVAL '3 weeks',   NOW() - INTERVAL '3 weeks'   + INTERVAL '1 hour',    220.00, NULL),
 
--- conveyor-01 (~4.5-week MTBF → ~10 events in 12 months)
-('conveyor-01','UNPLANNED','JAM_DETECTED — board carrier misalignment cleared',          'Azri M.',    NOW() - INTERVAL '11 months', NOW() - INTERVAL '11 months' + INTERVAL '30 minutes', 120.00, NULL),
-('conveyor-01','SCHEDULED','Quarterly PM — belt tensioner, guide rail lubrication',     'Hafiz R.',   NOW() - INTERVAL '9 months',  NOW() - INTERVAL '9 months' + INTERVAL '2.5 hours',  380.00, 'Guide rail lubricant'),
-('conveyor-01','UNPLANNED','Belt speed variance — encoder feedback cable replaced',      'Syafiq K.',  NOW() - INTERVAL '8 months',  NOW() - INTERVAL '8 months' + INTERVAL '1 hours',    290.00, 'Encoder cable'),
-('conveyor-01','UNPLANNED','JAM_DETECTED — carrier jam at output buffer, cleared',      'Azri M.',    NOW() - INTERVAL '6 months',  NOW() - INTERVAL '6 months' + INTERVAL '20 minutes',  80.00, NULL),
-('conveyor-01','UNPLANNED','Speed variance — belt tensioner spring replaced',            'Hafiz R.',   NOW() - INTERVAL '4 months',  NOW() - INTERVAL '4 months' + INTERVAL '1.5 hours',  340.00, 'Belt tensioner spring'),
-('conveyor-01','SCHEDULED','Quarterly PM — full belt inspection, roller bearing check', 'Hafiz R.',   NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months' + INTERVAL '3 hours',    520.00, 'Roller bearing (x2)'),
-('conveyor-01','UNPLANNED','JAM_DETECTED — board warp causing carrier friction, cleared','Azri M.',   NOW() - INTERVAL '6 weeks',   NOW() - INTERVAL '6 weeks' + INTERVAL '25 minutes',  100.00, NULL),
-('conveyor-01','UNPLANNED','JAM_DETECTED — carrier stopper solenoid stuck, replaced',   'Syafiq K.',  NOW() - INTERVAL '3 weeks',   NOW() - INTERVAL '3 weeks' + INTERVAL '50 minutes',  210.00, 'Carrier stop solenoid'),
+-- quench-01 (~8-week MTBF — critical for T5/T6 temper)
+('quench-01',    'SCHEDULED', 'Quarterly PM — spray nozzle clean, flow meter calibration',           'Tech-A', NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '3 hours',   650.00, 'Spray nozzle set (x12)'),
+('quench-01',    'UNPLANNED', 'QUENCH_FLOW_LOW — pump impeller wear, replaced',                      'Tech-B', NOW() - INTERVAL '7 months',  NOW() - INTERVAL '7 months'  + INTERVAL '4 hours',  1200.00, 'Pump impeller, mech seal'),
+('quench-01',    'SCHEDULED', 'Semi-annual PM — chiller coil clean, flow distribution audit',        'Tech-A', NOW() - INTERVAL '4 months',  NOW() - INTERVAL '4 months'  + INTERVAL '5 hours',   920.00, 'Chiller coil descaling'),
+('quench-01',    'UNPLANNED', 'Flow dropping — suction strainer clogged, cleaned',                   'Tech-C', NOW() - INTERVAL '5 weeks',   NOW() - INTERVAL '5 weeks'   + INTERVAL '1 hour',    180.00, NULL),
 
--- packer-01 / Test & Pack (~5.5-week MTBF → ~9 events in 12 months)
-('packer-01', 'UNPLANNED', 'FILM_BREAK — packaging film roll end, replaced',            'Azri M.',    NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '15 minutes',  60.00, 'Film roll 500m'),
-('packer-01', 'SCHEDULED', 'Quarterly PM — sealing bar calibration, film guide check', 'Hafiz R.',   NOW() - INTERVAL '9 months',  NOW() - INTERVAL '9 months' + INTERVAL '3 hours',    480.00, 'Sealing bar PTFE coating'),
-('packer-01', 'UNPLANNED', 'SEAL_TEMP_LOW — heating element partially failed, replaced','Syafiq K.',  NOW() - INTERVAL '7 months',  NOW() - INTERVAL '7 months' + INTERVAL '2 hours',    580.00, 'Sealing element 240V'),
-('packer-01', 'UNPLANNED', 'FILM_BREAK — film guide misaligned after roll change',      'Azri M.',    NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months' + INTERVAL '20 minutes',  80.00, NULL),
-('packer-01', 'UNPLANNED', 'FILM_BREAK — film tension roller bearing seized',           'Syafiq K.',  NOW() - INTERVAL '4 months',  NOW() - INTERVAL '4 months' + INTERVAL '1 hours',    240.00, 'Tension roller bearing'),
-('packer-01', 'SCHEDULED', 'Quarterly PM — full seal quality audit & calibration',     'Hafiz R.',   NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months' + INTERVAL '4 hours',    680.00, 'Sealing element, film guide'),
-('packer-01', 'UNPLANNED', 'FILM_BREAK — roll run-out, auto-stopped',                  'Azri M.',    NOW() - INTERVAL '5 weeks',   NOW() - INTERVAL '5 weeks' + INTERVAL '10 minutes',   50.00, 'Film roll 500m'),
-('packer-01', 'UNPLANNED', 'SEAL_TEMP_LOW — thermostat drift, recalibrated',            'Syafiq K.',  NOW() - INTERVAL '2 weeks',   NOW() - INTERVAL '2 weeks' + INTERVAL '45 minutes',  120.00, NULL)
+-- cooling-01 (~12-week MTBF — low event rate)
+('cooling-01',   'SCHEDULED', 'Quarterly PM — fan bearing grease, conveyor chain tension',           'Tech-A', NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '2 hours',   380.00, 'Fan bearing grease'),
+('cooling-01',   'UNPLANNED', 'Air flow low — intake filter clogged, replaced',                      'Tech-C', NOW() - INTERVAL '6 months',  NOW() - INTERVAL '6 months'  + INTERVAL '1 hour',    150.00, 'Intake filter (x2)'),
+('cooling-01',   'SCHEDULED', 'Semi-annual PM — fan motor inspection, conveyor roller check',        'Tech-A', NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months'  + INTERVAL '3 hours',   520.00, 'Conveyor rollers (x3)'),
+
+-- stretcher-01 (~6-week MTBF)
+('stretcher-01', 'UNPLANNED', 'STRETCH_SLIP — grip jaw worn, replaced both ends',                    'Tech-B', NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '3 hours',   720.00, 'Grip jaw set (x2)'),
+('stretcher-01', 'SCHEDULED', 'Quarterly PM — hydraulic ram seal, load cell calibration',            'Tech-A', NOW() - INTERVAL '8 months',  NOW() - INTERVAL '8 months'  + INTERVAL '4 hours',   880.00, 'Ram seal kit'),
+('stretcher-01', 'UNPLANNED', 'Grip slip on thin-wall profile, jaw insert refaced',                  'Tech-C', NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months'  + INTERVAL '1.5 hours', 260.00, 'Jaw insert'),
+('stretcher-01', 'SCHEDULED', 'Quarterly PM — alignment + lubrication',                              'Tech-A', NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months'  + INTERVAL '3 hours',   560.00, NULL),
+('stretcher-01', 'UNPLANNED', 'Grip jaw change — routine wear',                                      'Tech-B', NOW() - INTERVAL '6 weeks',   NOW() - INTERVAL '6 weeks'   + INTERVAL '2 hours',   420.00, 'Grip jaw set'),
+
+-- saw-01 (~4-week MTBF — blade wear drives this)
+('saw-01',       'UNPLANNED', 'Blade wear — cut length drift 3mm, blade changed',                    'Tech-C', NOW() - INTERVAL '11 months', NOW() - INTERVAL '11 months' + INTERVAL '1 hour',    220.00, 'TCT blade 500mm'),
+('saw-01',       'SCHEDULED', 'Quarterly PM — feed belt tension, air clamp seal check',              'Tech-A', NOW() - INTERVAL '9 months',  NOW() - INTERVAL '9 months'  + INTERVAL '2 hours',   340.00, NULL),
+('saw-01',       'UNPLANNED', 'Cut length deviation — length gauge encoder replaced',                'Tech-B', NOW() - INTERVAL '7 months',  NOW() - INTERVAL '7 months'  + INTERVAL '1.5 hours', 380.00, 'Length encoder'),
+('saw-01',       'UNPLANNED', 'Blade change — routine wear, +1mm drift',                             'Tech-C', NOW() - INTERVAL '5 months',  NOW() - INTERVAL '5 months'  + INTERVAL '45 minutes', 210.00, 'TCT blade'),
+('saw-01',       'SCHEDULED', 'Quarterly PM — full alignment + length calibration',                  'Tech-A', NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months'  + INTERVAL '3 hours',   480.00, NULL),
+('saw-01',       'UNPLANNED', 'Blade change — BLADE_WEAR fault ~4 wks after last',                   'Tech-C', NOW() - INTERVAL '4 weeks',   NOW() - INTERVAL '4 weeks'   + INTERVAL '45 minutes', 210.00, 'TCT blade'),
+
+-- ageing-01 (~10-week MTBF)
+('ageing-01',    'SCHEDULED', 'Quarterly PM — zone thermocouple cal, circulation fan inspection',    'Tech-A', NOW() - INTERVAL '10 months', NOW() - INTERVAL '10 months' + INTERVAL '4 hours',   780.00, 'Zone thermocouples (x3)'),
+('ageing-01',    'UNPLANNED', 'AGE_TEMP_DEVIATION — zone-3 heater element partial failure',          'Tech-B', NOW() - INTERVAL '6 months',  NOW() - INTERVAL '6 months'  + INTERVAL '3 hours',   920.00, 'Heater element zone-3'),
+('ageing-01',    'SCHEDULED', 'Semi-annual PM — full oven profile validation',                       'Tech-A', NOW() - INTERVAL '3 months',  NOW() - INTERVAL '3 months'  + INTERVAL '5 hours',  1050.00, 'Fan bearings'),
+('ageing-01',    'UNPLANNED', 'Dwell time short — door seal degraded, replaced',                     'Tech-C', NOW() - INTERVAL '5 weeks',   NOW() - INTERVAL '5 weeks'   + INTERVAL '2 hours',   340.00, 'Door seal kit')
 ;
 
 -- ─── 5. production_schedule ───────────────────────────────────────────────────
+-- Aluminium extrusion runs slower than packaging; targets in profiles per shift.
 
 CREATE TABLE IF NOT EXISTS production_schedule (
     shift_date   DATE NOT NULL,
     shift_name   TEXT NOT NULL,
     target_units INTEGER NOT NULL,
     actual_units INTEGER NOT NULL DEFAULT 0,
-    product      TEXT NOT NULL DEFAULT 'REL-2000 Industrial Relay Module',
+    product      TEXT NOT NULL DEFAULT 'Mixed Aluminium Profiles',
     PRIMARY KEY  (shift_date, shift_name)
 );
 
 INSERT INTO production_schedule (shift_date, shift_name, target_units, actual_units) VALUES
-    (CURRENT_DATE - 2, 'Morning',    850, 841),
-    (CURRENT_DATE - 2, 'Afternoon',  850, 822),
-    (CURRENT_DATE - 2, 'Night',      700, 695),
-    (CURRENT_DATE - 1, 'Morning',    850, 849),
-    (CURRENT_DATE - 1, 'Afternoon',  850, 803),
-    (CURRENT_DATE - 1, 'Night',      700, 648),
-    (CURRENT_DATE,     'Morning',    850,   0),
-    (CURRENT_DATE,     'Afternoon',  850,   0),
-    (CURRENT_DATE,     'Night',      700,   0)
+    (CURRENT_DATE - 2, 'Morning',    320, 312),
+    (CURRENT_DATE - 2, 'Afternoon',  320, 305),
+    (CURRENT_DATE - 2, 'Night',      240, 233),
+    (CURRENT_DATE - 1, 'Morning',    320, 318),
+    (CURRENT_DATE - 1, 'Afternoon',  320, 294),
+    (CURRENT_DATE - 1, 'Night',      240, 221),
+    (CURRENT_DATE,     'Morning',    320,   0),
+    (CURRENT_DATE,     'Afternoon',  320,   0),
+    (CURRENT_DATE,     'Night',      240,   0)
 ON CONFLICT (shift_date, shift_name) DO NOTHING;
 
 -- ─── 6. v_business_impact ────────────────────────────────────────────────────
