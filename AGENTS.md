@@ -1,0 +1,24 @@
+# Project instructions
+
+This project follows the global Codex workflow in `C:\Users\salbot01\.codex\AGENTS.md`.
+
+## Planning rules
+
+Use `grill-me` and `caveman` for planning sessions.
+
+Treat planning sessions as `gpt-5.4` with `high` reasoning.
+
+Before activating any skill beyond `grill-me` and `caveman`, ask permission and mention the likely token usage impact.
+
+Every substantial plan must include:
+
+- dedicated checkpoints sized to project scope
+- a master list inside each checkpoint so another model can resume immediately
+- a recommended next-step model
+- estimated token usage for each major task
+
+For large projects, increase checkpoint count rather than combining too much work into one checkpoint.
+
+## Gemini handoff
+
+Use `GEMINI.md` in this project for language-oriented notes, writing context, terminology, summaries, and handoff details.
