@@ -1,3 +1,16 @@
+## 👀 Non-technical viewer? Start here.
+
+> **Running on Windows + Docker Desktop?** The demo is three double-clicks.
+> No coding, no command line, no cloud account needed.
+>
+> | What | Link |
+> |---|---|
+> | Walkthrough + setup (10 min) | [`docs/windows-demo/WINDOWS_DEMO.md`](docs/windows-demo/WINDOWS_DEMO.md) |
+> | 5-min live demo script (recruiter calls) | [`docs/windows-demo/DEMO_SCRIPT_5MIN.md`](docs/windows-demo/DEMO_SCRIPT_5MIN.md) |
+> | Architecture in pictures | [`docs/windows-demo/ARCHITECTURE_DIAGRAM.md`](docs/windows-demo/ARCHITECTURE_DIAGRAM.md) |
+
+---
+
 # NEXUS — Aluminium Profile Decision Demo
 
 > From Factory Floor to Decision Desk
