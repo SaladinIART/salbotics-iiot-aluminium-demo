@@ -2,6 +2,8 @@
 
 This project follows the global Codex workflow in `C:\Users\salbot01\.codex\AGENTS.md`.
 
+> **Stack:** Preset **P3 — IIoT/OT Pipeline** — canonical NEXUS flagship. Canonical pins + conventions: [`..\STACK-STANDARD.md`](../STACK-STANDARD.md). Svelte frontend = frozen-legacy (do not expand). Duplicate at `founder-hub\nexus-iiot-platform` is slated for retirement.
+
 ## Planning rules
 
 Use `grill-me` and `caveman` for planning sessions.
